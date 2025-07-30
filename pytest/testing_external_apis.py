@@ -4,8 +4,10 @@ from time import sleep
 from users.infraestructure.external_users_api.external_user_api import crear_usuario_api, buscar_usuario_por_id_api
 
 
-# Asumiendo que ya tienes las funciones importar aquí
-# from tu_archivo import crear_usuario_api, buscar_usuario_por_id_api
+
+
+
+
 
 def test_crear_y_buscar_usuario():
     # 1. Crear usuario único (usar un correo y username único para cada pytest)

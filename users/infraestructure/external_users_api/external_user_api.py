@@ -2,6 +2,9 @@ import requests
 
 BASE_URL = "http://127.0.0.1:5000"
 
+
+
+
 def crear_usuario_api(nombre, dni, email, celular, username, password, id_tipo_usuario):
     payload = {
         "nombre": nombre,
