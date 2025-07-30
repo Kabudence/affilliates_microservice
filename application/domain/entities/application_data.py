@@ -1,7 +1,7 @@
-import enum
+from enum import Enum
 
 
-class ApplicationType(enum):
+class ApplicationType(Enum):
     EMPRENDEX = "emprendex"
     FULLVENTASGYM = "fullventasgym"
 

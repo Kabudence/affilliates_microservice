@@ -1,10 +1,8 @@
-import enum
 from peewee import Model, AutoField, CharField, DateTimeField
+
+from application.domain.entities.application_data import ApplicationType
 from shared.infrastructure.database import db
 
-class ApplicationType(enum.Enum):
-    EMPRENDEX = "emprendex"
-    FULLVENTASGYM = "fullventasgym"
 
 class ApplicationModel(Model):
     id               = AutoField(primary_key=True)
