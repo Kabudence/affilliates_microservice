@@ -1,8 +1,6 @@
 from typing import List, Optional
-
 from rental.domain.entities.plan import Plan
 from rental.infraestructure.Repositories.plan_repository import PlanRepository
-
 
 class PlanQueryService:
     def __init__(self, plan_repo: PlanRepository):
@@ -14,4 +12,5 @@ class PlanQueryService:
     def list_all(self) -> List[Plan]:
         return self.plan_repo.get_all()
 
-
+    def list_by_app_id(self, app_id: Optional[int] = None) -> List[Plan]:
+        return self.plan_repo.get_by_app_id(app_id)
