@@ -1,15 +1,19 @@
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from app.models import Usuario
 from rental.domain.entities.commissions import CommissionsTypes
 from rental.domain.entities.subscription import SubscriptionStatus
+from users.domain.model.entities.user import User, UserType
 
 
 class UserFlowService:
     def __init__(
         self,
         user_goal_command_service,
+        user_command_service,
+        user_query_service,
+
         subscription_command_service,
         commission_command_service,
         plan_query_service
@@ -18,6 +22,8 @@ class UserFlowService:
         self.subscription_command_service = subscription_command_service
         self.commission_command_service = commission_command_service
         self.plan_query_service = plan_query_service
+        self.user_command_service= user_command_service
+        self.user_query_service = user_query_service
 
     @staticmethod
     def _safe_zoneinfo(key: str):
@@ -26,19 +32,31 @@ class UserFlowService:
         except ZoneInfoNotFoundError:
             return timezone(timedelta(hours=-5))  # UTC-5 Lima
 
-    def seller_user_flow(self, user_id: int):
-        user = Usuario.query.get(user_id)
+    def user_flow(self, user_id: int, plan_id: Optional[int] = None):
+        user = self.user_query_service.get_by_id(user_id)
         if not user:
             raise ValueError("User not found")
-        if user.role != "AFILIADO":
-            raise ValueError("User must have role 'AFILIADO'")
+        if user.user_type == UserType.AFILIATE:
+            self.seller_user_flow(user_id)
+        else:
+            plan = plan_id
+            if plan is None:
+                raise ValueError("plan_id must be provided for BUYER users.")
+            self.buyer_user_flow(user_id, plan)
+
+
+    def seller_user_flow(self, user_id: int):
+        user = self.user_query_service.get_by_id(user_id)
+        if not user:
+            raise ValueError("User not found")
+        if user.user_type != UserType.AFILIATE:
+            raise ValueError("User must have role 'AFILLIATE'")
 
         # Crear meta para el usuario (goal_id=1)
         return self.user_goal_command_service.create(user_id=user_id, goal_id=1)
 
-
     def buyer_user_flow(self, user_id: int, plan_id: int):
-        user = Usuario.query.get(user_id)
+        user = self.user_query_service.get_by_id(user_id)
         if not user:
             raise ValueError("User not found")
         if user.role != "COMPRADOR":
@@ -68,6 +86,7 @@ class UserFlowService:
             "subscription": subscription,
             "commission": commission
         }
+
 
     def validate_state_user_goal(self, user_id: int):
         # Buscar los goals del usuario
@@ -116,7 +135,7 @@ class UserFlowService:
 
             # (total_amount / 0.2) * percentage_to_bonus
             if goal.percentage_to_bonus is not None:
-                reward = (total_amount / 0.2) * goal.percentage_to_bonus
+                reward = total_amount * goal.percentage_to_bonus
                 # Guardar la comisión como REFERRED
                 self.commission_command_service.create(
                     user_id=user_id,
