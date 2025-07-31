@@ -1,21 +1,15 @@
-import pytest
-from time import sleep
+import pytestt
 
-from users.infraestructure.external_users_api.external_user_api import crear_usuario_api, buscar_usuario_por_id_api
-
-
-
-
-
+from users.infraestructure.external_users_api.external_user_api import create_emprede_user, find_by_emprende_user_id
 
 
 def test_crear_y_buscar_usuario():
-    # 1. Crear usuario único (usar un correo y username único para cada pytest)
-    email = "testuser123@mail.com"
-    username = "testuser123"
-    status_create, resp_create = crear_usuario_api(
-        nombre="Test User",
-        dni="87654321",
+    # 1. Crear usuario único (usar un correo y username único para cada testing)
+    email = "testusedr123@mail.com"
+    username = "fstduser123"
+    status_create, resp_create = create_emprede_user(
+        nombre="Test User 2",
+        dni="87624321",
         email=email,
         celular="988877766",
         username=username,
@@ -31,7 +25,7 @@ def test_crear_y_buscar_usuario():
     # sleep(1)
 
     # 2. Buscar usuario por id
-    status_find, resp_find = buscar_usuario_por_id_api(user_id)
+    status_find, resp_find = find_by_emprende_user_id(user_id)
     assert status_find == 200, f"Falló búsqueda: {resp_find}"
     assert resp_find["username"] == username
     assert resp_find["email"] == email
@@ -40,4 +34,4 @@ def test_crear_y_buscar_usuario():
 
 
 if __name__ == "__main__":
-    pytest.main(["-v", __file__])
+    pytestt.main(["-v", __file__])
