@@ -1,4 +1,3 @@
-# plans/infrastructure/models/plan_model.py
 from peewee import Model, AutoField, CharField, FloatField, IntegerField, CompositeKey
 from shared.infrastructure.database import db
 
@@ -6,23 +5,27 @@ class PlanModel(Model):
     id          = AutoField(primary_key=True)
     name        = CharField(null=False)
     description = CharField(null=False)
+    duration    = IntegerField(null=False)       # Nuevo campo
     price       = FloatField(null=False)
+    app_id      = IntegerField(null=False)       # Nuevo campo
+    created_at  = CharField(constraints=[db.SQL("DEFAULT CURRENT_TIMESTAMP")], null=False)
+    updated_at  = CharField(constraints=[db.SQL("DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")], null=False)
 
     class Meta:
         database   = db
         table_name = 'plans'
         indexes    = (
-            (('name',), False),  # Ejemplo: podrías poner unique si los nombres deben ser únicos
+            (('name',), False),  # Puedes poner True si quieres que name sea único
         )
 
 class PlanModuleModel(Model):
-    plan_id = IntegerField()
-    module_id  = IntegerField()
+    plan_id   = IntegerField()
+    module_id = IntegerField()
 
     class Meta:
         database    = db
         table_name  = 'plan_modules'
         primary_key = CompositeKey('plan_id', 'module_id')
-        indexes = (
-            (('plan_id', 'module_id'), True),  # índice único compuesto
+        indexes     = (
+            (('plan_id', 'module_id'), True),  # Índice único compuesto
         )

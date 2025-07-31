@@ -3,7 +3,9 @@ class Plan:
                  id: int= None,
                 name :str = "",
                 description: str = "",
+                duration: int = None,
                 price: float = None,
+                app_id: int = None
                  ):
         self.id = id
         if name is None or name.strip() == "":
@@ -12,9 +14,15 @@ class Plan:
         if description is None or description.strip() == "":
             raise ValueError("description cannot be none or empty")
         self.description = description
+        if duration is None or duration <= 0:
+            raise ValueError("duration must be a positive integer")
+        self.duration = duration
         if price is None or price < 0:
             raise ValueError("price cannot be None or negative")
         self.price = price
+        if app_id is None:
+            raise ValueError("app_id cannot be None")
+        self.app_id = app_id
 
     def to_dict(self):
         return {
