@@ -1,6 +1,8 @@
 import datetime
 
 from peewee import Model, AutoField, CharField, FloatField, IntegerField, CompositeKey, DateTimeField
+
+from rental.domain.entities.plan import PlanType
 from shared.infrastructure.database import db
 
 class PlanModel(Model):
@@ -9,7 +11,12 @@ class PlanModel(Model):
     description = CharField(null=False)
     duration    = IntegerField(null=False)       # Nuevo campo
     price       = FloatField(null=False)
-    app_id      = IntegerField(null=False)       # Nuevo campo
+    app_id      = IntegerField(null=False)
+    plan_type   = CharField(
+        max_length=32,
+        null=PlanType.RENTAL,
+        choices=[ (plan_type.value, plan_type.value) for plan_type in PlanType]
+    )
     created_at = DateTimeField(default=datetime.datetime.now, null=False)
     updated_at = DateTimeField(default=datetime.datetime.now, null=False)
 

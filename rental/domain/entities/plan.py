@@ -1,3 +1,11 @@
+from enum import Enum
+
+
+class PlanType(Enum):
+ RENTAL = "rental"
+ UNIC_FRANCHISE = "unic_franchise"
+ EXCLUSIVE_FRANCHISE = "exclusive_franchise"
+
 class Plan:
     def __init__(self,
                  id: int= None,
@@ -5,6 +13,7 @@ class Plan:
                 description: str = "",
                 duration: int = None,
                 price: float = None,
+                plan_type: PlanType = PlanType,
                 app_id: int = None
                  ):
         self.id = id
@@ -20,6 +29,9 @@ class Plan:
         if price is None or price < 0:
             raise ValueError("price cannot be None or negative")
         self.price = price
+        if plan_type is None:
+            raise ValueError("plan_type cannot be None")
+        self.plan_type = plan_type if isinstance(plan_type, PlanType) else PlanType(plan_type)
         if app_id is None:
             raise ValueError("app_id cannot be None")
         self.app_id = app_id
