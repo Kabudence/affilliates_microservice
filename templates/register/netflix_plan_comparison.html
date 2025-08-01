@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Selecciona el plan ideal</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .plan-header {
+            background-color: #e50914;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        .plan-column {
+            background-color: #fafafa;
+            text-align: center;
+        }
+        .plan-highlight {
+            background-color: #b0060f !important;
+            color: #fff;
+            border-radius: 0 0 8px 8px;
+        }
+        .feature-row {
+            background-color: #fff;
+        }
+        .price {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        .tick {
+            color: #e50914;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        .cross {
+            color: #999;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <div class="container py-5">
+        <h2 class="mb-2">Selecciona el plan ideal para ti</h2>
+        <p class="mb-4">Compara y elige el plan que más se adapte a tus necesidades.</p>
+        <form method="post" action="#">
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle text-center">
+                    <thead>
+                        <tr>
+                            <th class="text-start"></th>
+                            {% for plan in plans %}
+                            <th class="plan-header {% if loop.last %}plan-highlight{% endif %}">{{ plan.name }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="feature-row">
+                            <td class="text-start">Precio al mes</td>
+                            {% for plan in plans %}
+                            <td class="plan-column price">{% if plan.price %}S/ {{ '%.2f'|format(plan.price) }}{% else %}-{% endif %}</td>
+                            {% endfor %}
+                        </tr>
+                        <tr class="feature-row">
+                            <td class="text-start">Disponible en HD</td>
+                            {% for plan in plans %}
+                            <td class="plan-column">{% if plan.available_hd %}<span class="tick">&#10003;</span>{% else %}<span class="cross">&#10005;</span>{% endif %}</td>
+                            {% endfor %}
+                        </tr>
+                        <tr class="feature-row">
+                            <td class="text-start">Disponible en Ultra HD</td>
+                            {% for plan in plans %}
+                            <td class="plan-column">{% if plan.available_uhd %}<span class="tick">&#10003;</span>{% else %}<span class="cross">&#10005;</span>{% endif %}</td>
+                            {% endfor %}
+                        </tr>
+                        <tr class="feature-row">
+                            <td class="text-start">Pantallas simultáneas</td>
+                            {% for plan in plans %}
+                            <td class="plan-column">{% if plan.screens %}{{ plan.screens }}{% else %}-{% endif %}</td>
+                            {% endfor %}
+                        </tr>
+                        <tr class="feature-row">
+                            <td class="text-start">Multidispositivo</td>
+                            {% for plan in plans %}
+                            <td class="plan-column">{% if plan.multidevice %}<span class="tick">&#10003;</span>{% else %}<span class="cross">&#10005;</span>{% endif %}</td>
+                            {% endfor %}
+                        </tr>
+                        <tr class="feature-row">
+                            <td class="text-start">Todo el contenido</td>
+                            {% for plan in plans %}
+                            <td class="plan-column">{% if plan.full_content %}<span class="tick">&#10003;</span>{% else %}<span class="cross">&#10005;</span>{% endif %}</td>
+                            {% endfor %}
+                        </tr>
+                        <tr class="feature-row">
+                            <td class="text-start">Cancela cuando quieras</td>
+                            {% for plan in plans %}
+                            <td class="plan-column">{% if plan.cancel_anytime %}<span class="tick">&#10003;</span>{% else %}<span class="cross">&#10005;</span>{% endif %}</td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td></td>
+                            {% for plan in plans %}
+                            <td>
+                                <button class="btn btn-danger w-100" {% if not plan.price %}disabled{% endif %}>Seleccionar</button>
+                                <input type="hidden" name="plan_id" value="{{ plan.id }}">
+                                <input type="hidden" name="user_id" value="{{ user_id or '' }}">
+                                <input type="hidden" name="excedent_amount" value="{{ excedent_amount or '' }}">
+                            </td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

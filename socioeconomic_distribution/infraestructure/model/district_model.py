@@ -1,5 +1,5 @@
 from peewee import (
-    Model, AutoField, CharField, DateTimeField, TimestampField, ForeignKeyField
+    Model, AutoField, CharField, DateTimeField, TimestampField, ForeignKeyField, IntegerField
 )
 from shared.infrastructure.database import db
 import datetime
@@ -7,7 +7,7 @@ import datetime
 class DistrictModel(Model):
     id = AutoField(primary_key=True)
     name = CharField(max_length=100, null=False)
-    inscription_level_id = ForeignKeyField('InscriptionLevelModel', field='id', null=False, column_name='inscription_level_id', on_delete='CASCADE')
+    inscription_level_id = IntegerField(null=False)
     created_at = DateTimeField(default=datetime.datetime.now, null=False)
     updated_at = DateTimeField(default=datetime.datetime.now, null=False)  # ← sin auto_now
 

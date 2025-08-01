@@ -41,5 +41,8 @@ class Plan:
             "id": self.id,
             "name": self.name,
             "description": self.description,
-            "price": self.price
+            "duration": self.duration,
+            "price": self.price,
+            "plan_type": self.plan_type.value if isinstance(self.plan_type, PlanType) else self.plan_type,
+            "app_id": self.app_id
         }

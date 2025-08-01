@@ -1,65 +1,150 @@
 # container.py
-from appointment.infraestructure.repositories.appointment_repository import AppointmentRepository
-from appointment.application.commands.appointment_command_service import AppointmentCommandService
-from appointment.application.queries.appointment_query_service import AppointmentQueryService
-from appointment.application.queries.availability_query_service import AvailabilityQueryService
-from appointment.domain.services.availability_service import AvailabilityService
-from schedules.application.commands.schedule_command_service import ScheduleCommandService
-from schedules.application.queries.schedule_query_service import ScheduleQueryService
+# ---------- IMPORTA TODOS TUS REPOSITORIOS ----------
+from application.application.query.application_query_service import ApplicationQueryService
+from application.infraestructure.repositories.application_data_repository import ApplicationRepository
+from billing.application.command.card_command_service import CardCommandService
+from billing.application.query.card_query_service import CardQueryService
+from billing.infraestructure.repository.card_repository import CardRepository
+from rental.application.commands.commissions_command_service import CommissionCommandService
+from rental.application.commands.goal_command_service import GoalCommandService
+from rental.application.commands.module_command_service import ModuleCommandService
+from rental.application.commands.plan_command_service import PlanCommandService
+from rental.application.commands.subscription_command_service import SubscriptionCommandService
+from rental.application.commands.user_goal_command_service import UserGoalCommandService
+from rental.application.queries.plan_query_service import PlanQueryService
+from rental.infraestructure.Repositories.commissions_repository import CommissionRepository
+from rental.infraestructure.Repositories.goal_repository import GoalRepository
+from rental.infraestructure.Repositories.module_repository import ModuleRepository
+from rental.infraestructure.Repositories.plan_repository import PlanRepository
+from rental.infraestructure.Repositories.module_plan_repository import PlanModuleRepository
+from rental.infraestructure.Repositories.subscription_repository import SubscriptionRepository
+from rental.infraestructure.Repositories.user_goal_repository import UserGoalRepository
+from socioeconomic_distribution.application.command.district_command_service import DistrictCommandService
+from socioeconomic_distribution.application.command.inscription_level_command_service import \
+    InscriptionLevelCommandService
+from socioeconomic_distribution.application.command.royalties_command_service import RoyaltiesCommandService
+from socioeconomic_distribution.infraestructure.repository.district_repository import DistrictRepository
+from socioeconomic_distribution.infraestructure.repository.inscription_level_repository import InscriptionLevelRepository
+from socioeconomic_distribution.infraestructure.repository.royalties_repository import RoyaltiesRepository
+from users.application.command.user_command_service import UserCommandService
+from users.application.query.user_query_service import UserQueryService
+from users.infraestructure.repositories.user_repository import UserRepository
 
-from schedules.infraestructure.repositories.schedule_repository import ScheduleRepository
-from schedules.infraestructure.repositories.schedule_staff_repository import ScheduleStaffRepository
+# ---------- IMPORTA TODOS TUS SERVICIOS ----------
+from application.application.command.application_command_service import ApplicationCommandService
 
-from staff.infraestructure.repositories.staff_repository import StaffRepository
-from staff.application.commands.StaffCommandService import StaffCommandService
-from staff.application.queries.StaffQueryService import StaffQueryService
+
 def build_services():
-    # ---------- Repos ----------
-    appointment_repo   = AppointmentRepository()
-    schedule_repo      = ScheduleRepository()
-    schedule_staff_repo= ScheduleStaffRepository()
-    staff_repo         = StaffRepository()
+    # ---------- INSTANTIACIÓN DE REPOS ----------
+    application_repo = ApplicationRepository()
+    card_repo = CardRepository()
+    commission_repo = CommissionRepository()
+    goal_repo = GoalRepository()
+    module_repo = ModuleRepository()
+    plan_repo = PlanRepository()
+    plan_module_repo = PlanModuleRepository()
+    subscription_repo = SubscriptionRepository()
+    user_goal_repo = UserGoalRepository()
+    district_repo = DistrictRepository()
+    inscription_level_repo = InscriptionLevelRepository()
+    royalties_repo = RoyaltiesRepository()
+    user_repo = UserRepository()
 
-    # ---------- Services ----------
-    # SCHEDULE
-    schedule_command_service = ScheduleCommandService(schedule_repo, schedule_staff_repo)
-    schedule_query_service   = ScheduleQueryService(schedule_repo)
+    # ---------- INSTANTIACIÓN DE SERVICES ----------
+    # Application
+    application_command_service = ApplicationCommandService(application_repo)
+    application_query_service = ApplicationQueryService(application_repo)
 
-    # APPOINTMENT
-    appointment_command_service = AppointmentCommandService(appointment_repo)
-    appointment_query_service   = AppointmentQueryService(appointment_repo)
+    # Card
+    card_command_service = CardCommandService(card_repo)
+    card_query_service = CardQueryService(card_repo)
 
-    # STAFF
-    staff_command_service = StaffCommandService(staff_repo)
-    staff_query_service   = StaffQueryService(staff_repo)
+    # Commission
+    commission_command_service = CommissionCommandService(commission_repo)
 
-    # AVAILABILITY
-    availability_service       = AvailabilityService(
-        schedule_repo, schedule_staff_repo, staff_repo, appointment_repo
-    )
-    availability_query_service = AvailabilityQueryService(availability_service)
+    # Goal
+    goal_command_service = GoalCommandService(goal_repo)
 
-    # ---------- Registro en app.config ----------
+    # Module
+    module_command_service = ModuleCommandService(module_repo)
+
+    # Plan
+    plan_command_service = PlanCommandService(plan_repo, plan_module_repo)
+    plan_query_service = PlanQueryService(plan_repo)
+
+    # Subscription
+    subscription_command_service = SubscriptionCommandService(subscription_repo)
+
+    # User Goal
+    user_goal_command_service = UserGoalCommandService(user_goal_repo)
+
+    # District
+    district_command_service = DistrictCommandService(district_repo)
+
+    # Inscription Level
+    inscription_level_command_service = InscriptionLevelCommandService(inscription_level_repo)
+
+    # Royalties
+    royalties_command_service = RoyaltiesCommandService(royalties_repo)
+
+    # User
+    user_command_service = UserCommandService(user_repo)
+    user_query_service = UserQueryService(user_repo)
+
+    # ---------- REGISTRO EN app.config ----------
     return {
-        # schedule
-        "schedule_command_service": schedule_command_service,
-        "schedule_query_service"  : schedule_query_service,
+        # Application
+        "application_command_service": application_command_service,
+        "application_query_service": application_query_service,
 
-        # appointment
-        "appointment_command_service": appointment_command_service,
-        "appointment_query_service"  : appointment_query_service,
+        # Card
+        "card_command_service": card_command_service,
+        "card_query_service": card_query_service,
 
-        # staff
-        "staff_command_service": staff_command_service,
-        "staff_query_service"  : staff_query_service,
+        # Commission
+        "commission_command_service": commission_command_service,
 
-        # availability
-        "availability_service"       : availability_service,
-        "availability_query_service" : availability_query_service,
+        # Goal
+        "goal_command_service": goal_command_service,
 
-        # repos (por si algún endpoint los necesita)
-        "schedule_repo"      : schedule_repo,
-        "schedule_staff_repo": schedule_staff_repo,
-        "appointment_repo"   : appointment_repo,
-        "staff_repo"         : staff_repo,
+        # Module
+        "module_command_service": module_command_service,
+
+        # Plan
+        "plan_command_service": plan_command_service,
+        "plan_query_service": plan_query_service,
+
+        # Subscription
+        "subscription_command_service": subscription_command_service,
+
+        # User Goal
+        "user_goal_command_service": user_goal_command_service,
+
+        # District
+        "district_command_service": district_command_service,
+
+        # Inscription Level
+        "inscription_level_command_service": inscription_level_command_service,
+
+        # Royalties
+        "royalties_command_service": royalties_command_service,
+
+        # User
+        "user_command_service": user_command_service,
+        "user_query_service": user_query_service,
+
+        # Repositorios (por si los necesitas directo)
+        "application_repo": application_repo,
+        "card_repo": card_repo,
+        "commission_repo": commission_repo,
+        "goal_repo": goal_repo,
+        "module_repo": module_repo,
+        "plan_repo": plan_repo,
+        "plan_module_repo": plan_module_repo,
+        "subscription_repo": subscription_repo,
+        "user_goal_repo": user_goal_repo,
+        "district_repo": district_repo,
+        "inscription_level_repo": inscription_level_repo,
+        "royalties_repo": royalties_repo,
+        "user_repo": user_repo,
     }
