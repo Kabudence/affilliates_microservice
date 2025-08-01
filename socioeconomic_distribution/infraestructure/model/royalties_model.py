@@ -1,13 +1,13 @@
-from peewee import Model, AutoField, IntegerField, FloatField, DateTimeField
+from peewee import Model, AutoField, IntegerField, FloatField, DateTimeField, TimestampField
 from shared.infrastructure.database import db
-from datetime import datetime
+import datetime
 
 class RoyaltiesModel(Model):
     id = AutoField(primary_key=True)
     inscription_level_id = IntegerField(null=False)
     cost = FloatField(null=False)
-    created_at = DateTimeField(default=datetime.utcnow, null=False)
-    updated_at = DateTimeField(default=datetime.utcnow, null=False)
+    created_at = DateTimeField(default=datetime.datetime.now, null=False)
+    updated_at = DateTimeField(default=datetime.datetime.now, null=False)
 
     class Meta:
         database = db

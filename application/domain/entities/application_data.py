@@ -22,3 +22,12 @@ class ApplicationData:
         self.description = description
         if application_type is None:
             raise ValueError("application_type cannot be None")
+        self.application_type = application_type if isinstance(application_type, ApplicationType) else ApplicationType(application_type)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "application_type": self.application_type.value if isinstance(self.application_type, ApplicationType) else self.application_type
+        }

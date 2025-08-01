@@ -1,5 +1,6 @@
+import datetime
 from peewee import (
-    Model, AutoField, IntegerField, CharField, DateTimeField
+    Model, AutoField, IntegerField, CharField, DateTimeField, TimestampField
 )
 from shared.infrastructure.database import db
 
@@ -9,9 +10,8 @@ class UserModel(Model):
     app_id         = IntegerField(null=False)
     user_owner_id  = IntegerField(null=True)
     user_type      = CharField(null=False)
-    created_at     = DateTimeField(constraints=[db.SQL("DEFAULT CURRENT_TIMESTAMP")], null=False)
-    updated_at     = DateTimeField(constraints=[db.SQL(
-        "DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")], null=False)
+    created_at = DateTimeField(default=datetime.datetime.now, null=False)
+    updated_at = DateTimeField(default=datetime.datetime.now, null=False)  # ← sin auto_now
 
     class Meta:
         database   = db

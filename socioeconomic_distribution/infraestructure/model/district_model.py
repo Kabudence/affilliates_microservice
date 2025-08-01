@@ -1,15 +1,15 @@
 from peewee import (
-    Model, AutoField, CharField, DateTimeField
+    Model, AutoField, CharField, DateTimeField, TimestampField
 )
 from shared.infrastructure.database import db
-from datetime import datetime
+import datetime
 
 class DistrictModel(Model):
     id = AutoField(primary_key=True)
     name = CharField(max_length=100, null=False)
     inscription_level = CharField(max_length=100, null=False)
-    created_at = DateTimeField(default=datetime.utcnow, null=False)
-    updated_at = DateTimeField(default=datetime.utcnow, null=False)
+    created_at = DateTimeField(default=datetime.datetime.now, null=False)
+    updated_at = DateTimeField(default=datetime.datetime.now, null=False)  # ← sin auto_now
 
     class Meta:
         database = db

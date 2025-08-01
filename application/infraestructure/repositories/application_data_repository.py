@@ -33,7 +33,8 @@ class ApplicationRepository:
         record = ApplicationModel.create(
             name=application.name,
             description=application.description,
-            application_type=application.application_type.value if isinstance(application.application_type, ApplicationType) else application.application_type
+            application_type=application.application_type.value if isinstance(application.application_type,
+                                                                              ApplicationType) else application.application_type
         )
         return ApplicationData(
             id=record.id,

@@ -1,4 +1,6 @@
-from peewee import Model, AutoField, CharField, DateTimeField
+import datetime
+
+from peewee import Model, AutoField, CharField, DateTimeField, TimestampField
 
 from application.domain.entities.application_data import ApplicationType
 from shared.infrastructure.database import db
@@ -13,9 +15,8 @@ class ApplicationModel(Model):
         null=False,
         choices=[(e.value, e.value) for e in ApplicationType]
     )
-    created_at       = DateTimeField(constraints=[db.SQL("DEFAULT CURRENT_TIMESTAMP")], null=False)
-    updated_at       = DateTimeField(constraints=[db.SQL(
-        "DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")], null=False)
+    created_at = DateTimeField(default=datetime.datetime.now, null=False)
+    updated_at = DateTimeField(default=datetime.datetime.now, null=False)  # ← sin auto_now
 
     class Meta:
         database   = db

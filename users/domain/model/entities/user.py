@@ -20,7 +20,7 @@ class User:
         if app_id is None:
             raise ValueError("app_id cannot be None")
         self.app_id = app_id
-        self.user_owner_id = user_owner_id  # Puede ser None
+        self.user_owner_id = user_owner_id
         if not isinstance(user_type, UserType):
             raise ValueError("user_type must be an instance of UserType Enum")
         self.user_type = user_type

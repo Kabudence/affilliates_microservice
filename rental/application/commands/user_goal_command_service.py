@@ -1,3 +1,5 @@
+from typing import List
+
 from rental.domain.entities.user_goal import UserGoal
 from rental.infraestructure.Repositories.user_goal_repository import UserGoalRepository
 
@@ -22,4 +24,6 @@ class UserGoalCommandService:
     def delete(self, user_goal_id: int) -> bool:
         return self.user_goal_repo.delete(user_goal_id)
 
-
+    # 🔹 Nuevo método que usa el test
+    def list_by_user(self, user_id: int) -> List[UserGoal]:
+        return self.user_goal_repo.get_by_user(user_id)

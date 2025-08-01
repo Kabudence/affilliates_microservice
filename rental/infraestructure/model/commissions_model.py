@@ -1,3 +1,5 @@
+import datetime
+
 from peewee import Model, AutoField, IntegerField, FloatField, CharField, DateTimeField
 from shared.infrastructure.database import db
 
@@ -12,7 +14,7 @@ class CommissionModel(Model):
         default="direct",
         choices=[("direct", "direct"), ("referred", "referred")]
     )
-    created_at       = DateTimeField(null=True)
+    created_at = DateTimeField(default=datetime.datetime.now, null=False)
 
     class Meta:
         database   = db

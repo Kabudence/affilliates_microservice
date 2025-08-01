@@ -1,8 +1,8 @@
 from peewee import (
-    Model, AutoField, CharField, IntegerField, DateTimeField
+    Model, AutoField, CharField, IntegerField, DateTimeField, TimestampField
 )
 from shared.infrastructure.database import db
-from datetime import datetime
+import datetime
 
 class CardModel(Model):
     id = AutoField(primary_key=True)
@@ -10,8 +10,8 @@ class CardModel(Model):
     expiration_date = CharField(max_length=7, null=False)
     cvv = CharField(max_length=4, null=False)
     user_id = IntegerField(null=False)
-    created_at = DateTimeField(default=datetime.utcnow, null=False)
-    updated_at = DateTimeField(default=datetime.utcnow, null=False)
+    created_at = DateTimeField(default=datetime.datetime.now, null=False)
+    updated_at = DateTimeField(default=datetime.datetime.now, null=False)  # ← sin auto_now
 
     class Meta:
         database = db

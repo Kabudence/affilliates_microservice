@@ -6,14 +6,19 @@ class SubscriptionCommandService:
     def __init__(self, subscription_repo: SubscriptionRepository):
         self.subscription_repo = subscription_repo
 
-    def create(self, plan_id: int, user_id: int, status: SubscriptionStatus = SubscriptionStatus.ACTIVE) -> Subscription:
+
+    def create(self, plan_id: int, user_id: int,
+               initial_date: str, final_date: str,
+               status: SubscriptionStatus = SubscriptionStatus.ACTIVE) -> Subscription:
         if plan_id is None or user_id is None:
             raise ValueError("plan_id and user_id are required.")
+        if not initial_date or not final_date:
+            raise ValueError("initial_date and final_date are required.")
         subscription = Subscription(
             plan_id=plan_id,
             user_id=user_id,
-            initial_date="",   # Se ignora; lo setea el repo con la hora actual
-            final_date="",     # Se ignora; lo setea el repo con la hora actual + 1 mes
+            initial_date=initial_date,
+            final_date=final_date,
             status=status
         )
         return self.subscription_repo.create(subscription)

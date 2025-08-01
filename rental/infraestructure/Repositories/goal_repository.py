@@ -64,3 +64,4 @@ class GoalRepository:
             return True
         except GoalModel.DoesNotExist:
             return False
+

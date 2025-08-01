@@ -13,10 +13,10 @@ class UserFlowService:
         user_goal_command_service,
         user_command_service,
         user_query_service,
-
         subscription_command_service,
         commission_command_service,
-        plan_query_service
+        plan_query_service,
+        goal_query_service
     ):
         self.user_goal_command_service = user_goal_command_service
         self.subscription_command_service = subscription_command_service
@@ -24,6 +24,7 @@ class UserFlowService:
         self.plan_query_service = plan_query_service
         self.user_command_service= user_command_service
         self.user_query_service = user_query_service
+        self.goal_query_service = goal_query_service
 
     @staticmethod
     def _safe_zoneinfo(key: str):
@@ -44,28 +45,36 @@ class UserFlowService:
                 raise ValueError("plan_id must be provided for BUYER users.")
             self.buyer_user_flow(user_id, plan)
 
-
     def seller_user_flow(self, user_id: int):
-        user = self.user_query_service.get_by_id(user_id)
-        if not user:
-            raise ValueError("User not found")
-        if user.user_type != UserType.AFILIATE:
-            raise ValueError("User must have role 'AFILLIATE'")
+        # ── obtén todos los goals registrados
+        goals = self.goal_query_service.list_all()
+        if not goals:
+            raise ValueError("No hay goals cargados en la BD")
 
-        # Crear meta para el usuario (goal_id=1)
-        return self.user_goal_command_service.create(user_id=user_id, goal_id=1)
+        # ── elige el de menor número de clientes
+        goal = min(goals, key=lambda g: g.number_of_clients)
+
+        # ── crea el UserGoal apuntando a ese id
+        return self.user_goal_command_service.create(user_id=user_id, goal_id=goal.id)
+
 
     def buyer_user_flow(self, user_id: int, plan_id: int):
         user = self.user_query_service.get_by_id(user_id)
         if not user:
             raise ValueError("User not found")
-        if user.role != "COMPRADOR":
-            raise ValueError("User must have role 'COMPRADOR'")
+
+        # Calcular fechas en hora Lima
+        tz_lima = self._safe_zoneinfo("America/Lima")
+        now = datetime.now(tz_lima)
+        initial_date = now.isoformat()
+        final_date = (now + timedelta(days=30)).isoformat()
 
         # Crear suscripción
         subscription = self.subscription_command_service.create(
             plan_id=plan_id,
             user_id=user_id,
+            initial_date=initial_date,  # <-- aquí
+            final_date=final_date,  # <-- aquí
             status=SubscriptionStatus.ACTIVE
         )
 
@@ -76,12 +85,12 @@ class UserFlowService:
 
         # Crear comisión para el usuario (tipo DIRECT, monto = 20% del precio del plan)
         commission = self.commission_command_service.create(
-            user_id=user_id,
+            user_id=user.user_owner_id,
             amount=plan.price * 0.2,
             type=CommissionsTypes.DIRECT,
             subscription_id=subscription.id
         )
-        self.validate_state_user_goal(user_id)
+        self.validate_state_user_goal(user.user_owner_id)
         return {
             "subscription": subscription,
             "commission": commission
@@ -104,6 +113,8 @@ class UserFlowService:
             else user_goal.initial_date
         )
         now = datetime.now(tz_lima)
+        if initial_date.tzinfo is None:
+            initial_date = initial_date.replace(tzinfo=tz_lima)
 
         if (now - initial_date).days >= 30:
             first_day = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
@@ -120,8 +131,8 @@ class UserFlowService:
         commissions = self.commission_command_service.commission_repo.get_all_by_user_id(user_id)
         num_commissions = len(commissions)
 
-        # Buscar la meta (goal) a la que apunta este UserGoal
-        goal = self.user_goal_command_service.user_goal_repo.goal_repo.get_by_id(user_goal.goal_id)
+
+        goal = self.goal_query_service.get_by_id(user_goal.goal_id)
         if not goal:
             raise ValueError("Goal not found")
 
@@ -133,14 +144,25 @@ class UserFlowService:
             # Calcular el monto total de comisiones
             total_amount = sum(c.amount for c in commissions if hasattr(c, 'amount'))
 
-            # (total_amount / 0.2) * percentage_to_bonus
+            # total_amount  * percentage_to_bonus
             if goal.percentage_to_bonus is not None:
                 reward = total_amount * goal.percentage_to_bonus
                 # Guardar la comisión como REFERRED
                 self.commission_command_service.create(
                     user_id=user_id,
                     amount=reward,
-                    type=CommissionsTypes.REFERRED,
+                    type=CommissionsTypes.DIRECT,
                     subscription_id=None
                 )
+                owner = self.user_query_service.get_by_id(user_id)
+                super_aff_id = getattr(owner, "user_owner_id", None)
+
+                if super_aff_id:  # ⬅️ evita user_id=None
+                    self.commission_command_service.create(
+                        user_id=super_aff_id,
+                        amount=reward,
+                        type=CommissionsTypes.REFERRED,
+                        subscription_id=None,
+                    )
+
 

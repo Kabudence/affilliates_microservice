@@ -45,3 +45,9 @@ class PlanCommandService:
 
     def delete(self, plan_id: int) -> bool:
         return self.plan_repo.delete(plan_id)
+
+    def get_by_id(self, plan_id: int) -> Plan:
+        plan = self.plan_repo.get_by_id(plan_id)
+        if not plan:
+            raise ValueError("Plan not found.")
+        return plan

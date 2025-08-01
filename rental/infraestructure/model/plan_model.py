@@ -1,4 +1,6 @@
-from peewee import Model, AutoField, CharField, FloatField, IntegerField, CompositeKey
+import datetime
+
+from peewee import Model, AutoField, CharField, FloatField, IntegerField, CompositeKey, DateTimeField
 from shared.infrastructure.database import db
 
 class PlanModel(Model):
@@ -8,8 +10,8 @@ class PlanModel(Model):
     duration    = IntegerField(null=False)       # Nuevo campo
     price       = FloatField(null=False)
     app_id      = IntegerField(null=False)       # Nuevo campo
-    created_at  = CharField(constraints=[db.SQL("DEFAULT CURRENT_TIMESTAMP")], null=False)
-    updated_at  = CharField(constraints=[db.SQL("DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")], null=False)
+    created_at = DateTimeField(default=datetime.datetime.now, null=False)
+    updated_at = DateTimeField(default=datetime.datetime.now, null=False)
 
     class Meta:
         database   = db

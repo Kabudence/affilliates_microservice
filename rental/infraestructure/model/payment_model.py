@@ -1,4 +1,6 @@
 # payments/infrastructure/models/payment_model.py
+import datetime
+
 from peewee import Model, AutoField, IntegerField, FloatField, DateTimeField, CharField
 
 from rental.domain.entities.payment import PaymentStatus
@@ -8,7 +10,7 @@ class PaymentModel(Model):
     id         = AutoField(primary_key=True)
     user_id    = IntegerField(null=False)
     amount     = FloatField(null=False)
-    created_at = DateTimeField(null=False)
+    created_at = DateTimeField(default=datetime.datetime.now, null=False)
     status     = CharField(
         max_length=20,
         default=PaymentStatus.PENDING.value,
