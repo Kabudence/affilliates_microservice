@@ -6,6 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from application.domain.entities.application_data import ApplicationType
+from rental.domain.entities.plan import PlanType
 from users.domain.model.entities.user import UserType
 
 # ------------------------------------------------------------------
@@ -51,6 +52,7 @@ def test_multilevel_commission_flow(
         duration=30,
         price=100.0,
         app_id=app.id,
+        plan_type=PlanType.RENTAL,
         ids_modules=[m.id for m in modules],
     )
 
