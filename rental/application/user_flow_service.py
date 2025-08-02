@@ -78,6 +78,14 @@ class UserFlowService:
             status=SubscriptionStatus.ACTIVE
         )
 
+        if not user.user_owner_id:
+            # Si no hay owner_id, está permitido, no hacer más validación
+            return True
+
+        owner_exists = self.user_query_service.get_by_id(user.user_owner_id)
+        if not owner_exists:
+            return True
+
         # Obtener información del plan para el cálculo de comisión
         plan = self.plan_query_service.get_by_id(plan_id)
         if not plan:

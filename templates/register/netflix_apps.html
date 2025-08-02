@@ -4,226 +4,163 @@
     <title>Selecciona una aplicación</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+{% raw %}
     <style>
-        body {
-            background: #181818 !important;
-        }
-        .container-netflix {
-            max-width: 1400px;
-            margin: 40px auto;
-            padding: 0 10px;
-        }
-        /* Cards en horizontal con flex */
-        #cards-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 32px;
-            justify-content: center;
-        }
-        .app-card {
-            background: #232323;
-            color: #fff;
-            border: none;
-            border-radius: 1rem;
-            min-width: 320px;
-            max-width: 380px;
-            flex: 1 1 330px;
-            margin-bottom: 18px;
-            box-shadow: 0 4px 24px 0 rgba(0,0,0,0.14);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .app-card .btn {
-            background: #e50914;
-            border: none;
-            border-radius: 8px;
-        }
-        .plan-comparison-section {
-            display: none;
-            margin-top: 32px;
-            padding: 30px 20px 20px 20px;
-            background: #232323;
-            border-radius: 1rem;
-            box-shadow: 0 6px 24px 0 rgba(0,0,0,0.15);
-            animation: fadeIn .5s;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-30px);}
-            to   { opacity: 1; transform: translateY(0);}
-        }
-        .plan-header {
-            background-color: #e50914;
-            color: white;
-            font-size: 1.11rem;
-            font-weight: 700;
-        }
-        .plan-highlight {
-            background-color: #b0060f !important;
-            color: #fff;
-        }
-        .plan-column {
-            background-color: #1a1a1a;
-            color: #fff;
-            text-align: center;
-            min-width: 170px;
-        }
-        .feature-row {
-            background-color: #232323;
-            color: #fff;
-        }
-        .price {
-            font-size: 1.15rem;
-            font-weight: 600;
-        }
-        .tick { color: #e50914; font-size: 1.3rem; font-weight: bold;}
-        .cross { color: #bbb; font-size: 1.3rem; font-weight: bold;}
-        .close-table {
-            position: absolute;
-            top: 24px;
-            right: 34px;
-            color: #fff;
-            font-size: 2rem;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-        }
-        @media (max-width: 900px) {
-            .container-netflix { max-width: 99%; }
-            .app-card { min-width: 270px; max-width: 96vw; }
-            #cards-row { gap: 18px;}
-            .plan-header, .plan-column { font-size: 0.96rem; min-width: 90px;}
-        }
-        @media (max-width: 600px) {
-            #cards-row { flex-direction: column; }
-            .app-card { max-width: 99vw; }
-        }
+        body{background:#181818!important;}
+        .container-netflix{max-width:1400px;margin:40px auto;padding:0 10px;}
+        #cards-row{display:flex;flex-wrap:wrap;gap:32px;justify-content:center;}
+        .app-card{background:#232323;color:#fff;border:none;border-radius:1rem;
+                  min-width:320px;max-width:380px;flex:1 1 330px;margin-bottom:18px;
+                  box-shadow:0 4px 24px rgba(0,0,0,.14);display:flex;flex-direction:column;}
+        .app-card .btn{background:#e50914;border:none;border-radius:8px;}
+        .plan-comparison-section{display:none;margin-top:32px;padding:30px 20px 20px;
+                                 background:#232323;border-radius:1rem;
+                                 box-shadow:0 6px 24px rgba(0,0,0,.15);animation:fadeIn .5s;}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(-30px);}
+                          to{opacity:1;transform:translateY(0);}}
+        .plan-header{background:#e50914;color:#fff;font-size:1.11rem;font-weight:700;}
+        .plan-highlight{background:#b0060f!important;}
+        .plan-column{background:#1a1a1a;color:#fff;text-align:center;min-width:170px;}
+        .feature-row{background:#232323;color:#fff;}
+        .price{font-size:1.15rem;font-weight:600;}
+        .tick{color:#e50914;font-size:1.3rem;font-weight:bold;}
+        .cross{color:#bbb;font-size:1.3rem;font-weight:bold;}
+        .close-table{position:absolute;top:24px;right:34px;font-size:2rem;color:#fff;
+                     background:transparent;border:none;cursor:pointer;}
+        @media (max-width:900px){.app-card{min-width:270px;}
+                                 .plan-header,.plan-column{font-size:.96rem;}}
+        @media (max-width:600px){#cards-row{flex-direction:column;}.app-card{max-width:99vw;}}
     </style>
+{% endraw %}
 </head>
 <body>
-    <div class="container-netflix">
-        <h2 class="text-center mb-4">Selecciona una aplicación</h2>
-        <div id="cards-row" class="mb-4">
-            {% for app in apps %}
-                <div class="app-card p-4" data-app-id="{{ app.id }}"
-                    data-name="{{ app.name|e }}"
-                    data-description="{{ app.description|e }}"
-                    data-plans='{{ app.plans|tojson }}'>
-                    <h5 class="mb-1">{{ app.name }}</h5>
-                    <p style="font-size:1.04rem;">{{ app.description }}</p>
-                    <button class="btn btn-danger w-100 mt-2 show-plans-btn" data-app-id="{{ app.id }}">
-                        Ver planes
-                    </button>
-                </div>
-            {% endfor %}
+<div class="container-netflix">
+    <h2 class="text-center mb-4">Selecciona una aplicación</h2>
+
+    <div id="cards-row">
+        {% for app in apps %}
+        <div class="app-card p-4"
+             data-app-id="{{ app.id }}"
+             data-name="{{ app.name|e }}"
+             data-description="{{ app.description|e }}"
+             data-plans='{{ app.plans|tojson }}'>
+            <h5 class="mb-1">{{ app.name }}</h5>
+            <p style="font-size:1.04rem;">{{ app.description }}</p>
+            <button class="btn btn-danger w-100 mt-2 show-plans-btn"
+                    data-app-id="{{ app.id }}">
+                Ver planes
+            </button>
         </div>
-
-        <!-- Aquí aparece la tabla de comparación -->
-        <div id="plan-comparison-section" class="plan-comparison-section position-relative"></div>
+        {% endfor %}
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Utilidad para renderizar ticks y valores
-        function boolCell(val) {
-            return val ? '<span class="tick">&#10003;</span>' : '<span class="cross">&#10005;</span>';
-        }
 
-        function renderPlansTable(appName, appDescription, plans) {
-            // Aquí puedes mapear features dinámicamente según tu lógica de negocio real
-            plans.forEach(function(plan) {
-                plan.available_hd = plan.name.toLowerCase().includes('premium') || plan.name.toLowerCase().includes('estándar');
-                plan.available_uhd = plan.name.toLowerCase().includes('premium');
-                plan.screens = plan.name.toLowerCase().includes('premium') ? 4 :
-                               plan.name.toLowerCase().includes('estándar') ? 2 : 1;
-                plan.multidevice = true;
-                plan.full_content = true;
-                plan.cancel_anytime = true;
-            });
+    <div id="plan-comparison-section"
+         class="plan-comparison-section position-relative"></div>
+</div>
 
-            let html = `
-                <button class="close-table" title="Cerrar">&times;</button>
-                <div class="mb-2">
-                    <h4 style="color:#fff;">${appName}</h4>
-                    <p style="color:#ccc;">${appDescription}</p>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-bordered align-middle text-center mb-0">
-                        <thead>
-                            <tr>
-                                <th class="text-start"></th>
-                                ${plans.map((plan, i) => `
-                                    <th class="plan-header${i===plans.length-1?' plan-highlight':''}">${plan.name}</th>
-                                `).join('')}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="feature-row">
-                                <td class="text-start">Precio al mes</td>
-                                ${plans.map(plan => `
-                                    <td class="plan-column price">${plan.price ? `S/ ${parseFloat(plan.price).toFixed(2)}` : '-'}</td>
-                                `).join('')}
-                            </tr>
-                            <tr class="feature-row">
-                                <td class="text-start">Disponible en HD</td>
-                                ${plans.map(plan => `<td class="plan-column">${boolCell(plan.available_hd)}</td>`).join('')}
-                            </tr>
-                            <tr class="feature-row">
-                                <td class="text-start">Disponible en Ultra HD</td>
-                                ${plans.map(plan => `<td class="plan-column">${boolCell(plan.available_uhd)}</td>`).join('')}
-                            </tr>
-                            <tr class="feature-row">
-                                <td class="text-start">Pantallas simultáneas</td>
-                                ${plans.map(plan => `<td class="plan-column">${plan.screens || '-'}</td>`).join('')}
-                            </tr>
-                            <tr class="feature-row">
-                                <td class="text-start">Multidispositivo</td>
-                                ${plans.map(plan => `<td class="plan-column">${boolCell(plan.multidevice)}</td>`).join('')}
-                            </tr>
-                            <tr class="feature-row">
-                                <td class="text-start">Todo el contenido</td>
-                                ${plans.map(plan => `<td class="plan-column">${boolCell(plan.full_content)}</td>`).join('')}
-                            </tr>
-                            <tr class="feature-row">
-                                <td class="text-start">Cancela cuando quieras</td>
-                                ${plans.map(plan => `<td class="plan-column">${boolCell(plan.cancel_anytime)}</td>`).join('')}
-                            </tr>
-                            <tr>
-                                <td></td>
-                                ${plans.map(plan => `
-                                    <td>
-                                        <button class="btn btn-danger w-100" ${!plan.price ? 'disabled' : ''}>Seleccionar</button>
-                                    </td>
-                                `).join('')}
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            return html;
-        }
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const comparisonSection = document.getElementById('plan-comparison-section');
+{% raw %}
+<script>
+/* -------- helpers --------- */
+const params  = new URLSearchParams(window.location.search);
+const ownerId = params.get('user_owner_id') || '';
 
-            document.querySelectorAll('.show-plans-btn').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    const appCard = this.closest('.app-card');
-                    const appName = appCard.getAttribute('data-name');
-                    const appDescription = appCard.getAttribute('data-description');
-                    const plans = JSON.parse(appCard.getAttribute('data-plans'));
-                    // Renderiza la tabla
-                    comparisonSection.innerHTML = renderPlansTable(appName, appDescription, plans);
-                    comparisonSection.style.display = 'block';
-                    comparisonSection.scrollIntoView({behavior: 'smooth', block: 'center'});
-                    // Cerrar tabla con botón X
-                    document.querySelector('.close-table').onclick = function() {
-                        comparisonSection.style.display = 'none';
-                    };
-                });
-            });
-        });
-    </script>
+const boolCell = v => v
+      ? '<span class="tick">&#10003;</span>'
+      : '<span class="cross">&#10005;</span>';
+
+/* ---- genera tabla ---- */
+function renderPlansTable(appId, appName, appDescription, plans){
+  /* features de ejemplo */
+  plans.forEach(p=>{
+    p.available_hd   = /premium|estándar/i.test(p.name);
+    p.available_uhd  = /premium/i.test(p.name);
+    p.screens        = /premium/i.test(p.name)?4:/estándar/i.test(p.name)?2:1;
+    p.multidevice = p.full_content = p.cancel_anytime = true;
+  });
+
+  return `
+    <button class="close-table" title="Cerrar">&times;</button>
+    <div class="mb-2">
+        <h4 style="color:#fff;">${appName}</h4>
+        <p style="color:#ccc;">${appDescription}</p>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-bordered align-middle text-center mb-0">
+        <thead>
+          <tr>
+            <th class="text-start"></th>
+            ${plans.map((p,i)=>`
+              <th class="plan-header${i===plans.length-1?' plan-highlight':''}">
+                ${p.name}
+              </th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="feature-row"><td class="text-start">Precio al mes</td>
+            ${plans.map(p=>`<td class="plan-column price">
+              ${p.price ? 'S/ '+parseFloat(p.price).toFixed(2) : '-'}</td>`).join('')}
+          </tr>
+          <tr class="feature-row"><td class="text-start">Disponible en HD</td>
+            ${plans.map(p=>`<td class="plan-column">${boolCell(p.available_hd)}</td>`).join('')}
+          </tr>
+          <tr class="feature-row"><td class="text-start">Disponible en Ultra HD</td>
+            ${plans.map(p=>`<td class="plan-column">${boolCell(p.available_uhd)}</td>`).join('')}
+          </tr>
+          <tr class="feature-row"><td class="text-start">Pantallas simultáneas</td>
+            ${plans.map(p=>`<td class="plan-column">${p.screens}</td>`).join('')}
+          </tr>
+          <tr class="feature-row"><td class="text-start">Multidispositivo</td>
+            ${plans.map(p=>`<td class="plan-column">${boolCell(p.multidevice)}</td>`).join('')}
+          </tr>
+          <tr class="feature-row"><td class="text-start">Todo el contenido</td>
+            ${plans.map(p=>`<td class="plan-column">${boolCell(p.full_content)}</td>`).join('')}
+          </tr>
+          <tr class="feature-row"><td class="text-start">Cancela cuando quieras</td>
+            ${plans.map(p=>`<td class="plan-column">${boolCell(p.cancel_anytime)}</td>`).join('')}
+          </tr>
+
+          <!-- registro -->
+          <tr><td></td>
+            ${plans.map(p=>`
+              <td>
+                <a class="btn btn-danger w-100"
+                   href="/register/user?plan_id=${p.id}${ownerId ? `&user_owner_id=${ownerId}` : ''}"
+                   ${!p.price ? 'disabled' : ''}>
+                   Registrarse
+                </a>
+              </td>`).join('')}
+          </tr>
+        </tbody>
+      </table>
+    </div>`;
+}
+
+/* eventos */
+document.addEventListener('DOMContentLoaded', ()=>{
+  const comparison = document.getElementById('plan-comparison-section');
+  document.querySelectorAll('.show-plans-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const card  = btn.closest('.app-card');
+      const name  = card.dataset.name;
+      const desc  = card.dataset.description;
+      const plans = JSON.parse(card.dataset.plans);
+      const id    = card.dataset.appId;
+
+      comparison.innerHTML = renderPlansTable(id,name,desc,plans);
+      comparison.style.display='block';
+      comparison.scrollIntoView({behavior:'smooth',block:'center'});
+      comparison.querySelector('.close-table').onclick =
+        ()=>comparison.style.display='none';
+    });
+  });
+});
+</script>
+{% endraw %}
 </body>
 </html>

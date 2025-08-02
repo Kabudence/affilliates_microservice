@@ -33,3 +33,7 @@ class User:
             "user_owner_id": self.user_owner_id,
             "user_type": self.user_type.value if isinstance(self.user_type, UserType) else self.user_type
         }
+
+def role_to_user_type(role_str: str) -> UserType:
+        role_str = (role_str or "").strip().upper()
+        return UserType.AFILIATE if role_str == "AFILIATE" else UserType.BUYER

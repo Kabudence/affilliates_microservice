@@ -20,3 +20,9 @@ class SubscriptionQueryService:
     def list_by_status(self, status: str) -> List[Subscription]:
         # También agrega esto en tu repo si lo usas mucho
         return self.subscription_repo.get_by_status(status)
+
+    def get_subscription_by_user_id(self, user_id: int) -> Optional[Subscription]:
+        """
+        Obtiene una suscripción por el ID del usuario.
+        """
+        return  self.subscription_repo.get_by_user_id(user_id)

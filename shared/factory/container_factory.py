@@ -11,7 +11,10 @@ from rental.application.commands.module_command_service import ModuleCommandServ
 from rental.application.commands.plan_command_service import PlanCommandService
 from rental.application.commands.subscription_command_service import SubscriptionCommandService
 from rental.application.commands.user_goal_command_service import UserGoalCommandService
+from rental.application.queries import goal_query_service
 from rental.application.queries.plan_query_service import PlanQueryService
+from rental.application.queries.subscription_query_service import SubscriptionQueryService
+from rental.application.user_flow_service import UserFlowService
 from rental.infraestructure.Repositories.commissions_repository import CommissionRepository
 from rental.infraestructure.Repositories.goal_repository import GoalRepository
 from rental.infraestructure.Repositories.module_repository import ModuleRepository
@@ -74,7 +77,7 @@ def build_services():
 
     # Subscription
     subscription_command_service = SubscriptionCommandService(subscription_repo)
-
+    subscription_query_service = SubscriptionQueryService(subscription_repo)
     # User Goal
     user_goal_command_service = UserGoalCommandService(user_goal_repo)
 
@@ -90,6 +93,16 @@ def build_services():
     # User
     user_command_service = UserCommandService(user_repo)
     user_query_service = UserQueryService(user_repo)
+
+    user_flow_service = UserFlowService(
+        user_goal_command_service=user_goal_command_service,
+        user_command_service=user_command_service,
+        user_query_service=user_query_service,
+        subscription_command_service=subscription_command_service,
+        commission_command_service=commission_command_service,
+        plan_query_service=plan_query_service,
+        goal_query_service=goal_query_service
+    )
 
     # ---------- REGISTRO EN app.config ----------
     return {
@@ -116,7 +129,7 @@ def build_services():
 
         # Subscription
         "subscription_command_service": subscription_command_service,
-
+        "subscription_query_service" : subscription_query_service,
         # User Goal
         "user_goal_command_service": user_goal_command_service,
 
@@ -132,6 +145,7 @@ def build_services():
         # User
         "user_command_service": user_command_service,
         "user_query_service": user_query_service,
+        "user_flow_service": user_flow_service,
 
         # Repositorios (por si los necesitas directo)
         "application_repo": application_repo,

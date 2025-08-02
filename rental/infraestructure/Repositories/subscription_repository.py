@@ -114,6 +114,24 @@ class SubscriptionRepository:
             for rec in SubscriptionModel.select().where(SubscriptionModel.user_id == user_id)
         ]
 
+    def get_by_user_id(self,user_id:int)-> Subscription:
+
+        """
+        Devuelve una suscripción por el ID del usuario.
+        """
+        try:
+            record = SubscriptionModel.get(SubscriptionModel.user_id == user_id)
+            return Subscription(
+                id=record.id,
+                plan_id=record.plan_id,
+                user_id=record.user_id,
+                initial_date=record.initial_date.isoformat(),
+                final_date=record.final_date.isoformat(),
+                status=SubscriptionStatus(record.status)
+            )
+        except SubscriptionModel.DoesNotExist:
+            return None
+
     def get_by_status(self, status: str) -> List[Subscription]:
         """
         Devuelve todas las suscripciones con cierto estado ('active', 'inactive', etc).
