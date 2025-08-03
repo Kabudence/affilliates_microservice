@@ -130,3 +130,21 @@ def register_user():
         default_role  = default_role,
         titulo        = titulo
     )
+
+
+@register_module_api.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        # Valida usuario/contraseña aquí...
+        username = request.form['username']
+        password = request.form['password']
+
+        datos_user = {
+            "id": 7,
+            "username": username,
+            "email": "algo@correo.com"
+        }
+        # Renderiza con datos_user solo si login OK
+        return render_template('login/inicio_sesion.html', datos_user=datos_user)
+    # GET normal
+    return render_template('login/inicio_sesion.html')

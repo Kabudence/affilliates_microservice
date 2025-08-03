@@ -16,7 +16,7 @@
         .btn-danger:active{background:#b0060f;}
     </style>
 </head>
-<body>
+<body style="display:flex;flex-direction:column;min-height:100vh;">
 <div class="registro-container">
   <!-- TÍTULO DINÁMICO -->
   <h3 class="mb-3 text-center">{{ titulo }}</h3>
@@ -61,5 +61,7 @@
     <button class="btn btn-danger mt-3" type="submit">Registrarme</button>
   </form>
 </div>
+{% include "shared/footer.html" %}
+
 </body>
 </html>
