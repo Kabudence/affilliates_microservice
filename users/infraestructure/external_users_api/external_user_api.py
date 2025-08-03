@@ -61,3 +61,51 @@ def find_by_emprende_user_id(user_id: int):
         return resp.status_code, resp.json()
     except ValueError:
         return resp.status_code, resp.text
+
+# ----------  LOGIN  ----------
+def login_emprende_user(username, password):
+    """
+    POST /external_api/usuarios/api/login
+    Devuelve (status_code, json|texto)
+    """
+    url = f"{BASE_URL}{API_PREFIX}/api/login"
+    payload = {
+        "username": username,
+        "password": password
+    }
+
+    log.info("POST  %s  » %s", url, json.dumps(payload))
+    try:
+        resp = requests.post(url, json=payload, timeout=10)
+    except requests.RequestException as err:
+        log.error("✖  Error de red: %s", err)
+        raise
+
+    log.info("← %s %s", resp.status_code, resp.text[:150])
+    try:
+        return resp.status_code, resp.json(), resp.cookies
+    except ValueError:
+        return resp.status_code, resp.text, resp.cookies
+
+
+# ----------  LOGOUT  ----------
+def logout_emprende_user(cookies=None):
+    """
+    POST /external_api/usuarios/api/logout
+    Devuelve (status_code, json|texto)
+    """
+    url = f"{BASE_URL}{API_PREFIX}/api/logout"
+
+    log.info("POST  %s  (logout)", url)
+    try:
+        # Si tienes cookies de sesión, pásalas para cerrar correctamente
+        resp = requests.post(url, cookies=cookies, timeout=10)
+    except requests.RequestException as err:
+        log.error("✖  Error de red: %s", err)
+        raise
+
+    log.info("← %s %s", resp.status_code, resp.text[:150])
+    try:
+        return resp.status_code, resp.json()
+    except ValueError:
+        return resp.status_code, resp.text

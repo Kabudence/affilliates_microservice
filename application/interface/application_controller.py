@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, current_app, flash, redirect, url_for
 
 from users.domain.model.entities.user import role_to_user_type
-from users.infraestructure.external_users_api.external_user_api import create_emprede_user
+from users.infraestructure.external_users_api.external_user_api import create_emprede_user, login_emprende_user
 
 register_module_api = Blueprint('register_module_api', __name__)
 
@@ -134,17 +134,26 @@ def register_user():
 
 @register_module_api.route('/login', methods=['GET', 'POST'])
 def login():
+    application_query_service = current_app.config["application_query_service"]
+    apps = application_query_service.list_all()  # lista de ApplicationData
+
     if request.method == 'POST':
-        # Valida usuario/contraseña aquí...
         username = request.form['username']
         password = request.form['password']
+        app_id = request.form.get('app_id')
 
-        datos_user = {
-            "id": 7,
-            "username": username,
-            "email": "algo@correo.com"
-        }
-        # Renderiza con datos_user solo si login OK
-        return render_template('login/inicio_sesion.html', datos_user=datos_user)
+        # Llamada al login externo
+        status, data, cookies = login_emprende_user(username, password)
+        if status == 200:
+            datos_user = data  # O como sea que te venga el user en el JSON
+            return render_template(
+                'login/inicio_sesion.html',
+                datos_user=datos_user,
+                apps=apps,
+                app_id=app_id  # puedes guardarlo en localStorage con JS si quieres
+            )
+        else:
+            flash('Usuario o contraseña inválidos', 'danger')
+            return render_template('login/inicio_sesion.html', apps=apps)
     # GET normal
-    return render_template('login/inicio_sesion.html')
+    return render_template('login/inicio_sesion.html', apps=apps)

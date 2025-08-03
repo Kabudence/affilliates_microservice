@@ -9,8 +9,7 @@
     <style>
         html, body {
             height: 100%;
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
         }
         body {
             min-height: 100vh;
@@ -23,7 +22,6 @@
             flex: 1 0 auto;
             display: flex;
             flex-direction: column;
-            min-height: 0;
         }
         .center-content {
             flex: 1 1 100%;
@@ -31,60 +29,78 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 0;
         }
         .titulo-global {
             margin-bottom: 24px;
             text-align: center;
-            font-size: 2.1rem;
+            font-size: 1.35rem;
             color: #e50914;
             font-weight: bold;
             letter-spacing: .5px;
         }
         .login-container {
-            max-width: 410px;
-            width: 100%;
+            max-width: 310px;
+            width: 95vw;
             background: #232323;
-            padding: 32px 28px 22px;
+            padding: 28px 20px 18px;
             border-radius: 1rem;
             box-shadow: 0 4px 24px rgba(0,0,0,.19);
         }
-        .form-label { color: #fff; }
+        .form-label { color: #fff; font-size: .97rem; }
         .btn-danger { width: 100%; background: #e50914; border: none; }
         .btn-danger:active { background: #b0060f; }
         .form-control:focus { box-shadow: 0 0 0 2px #e50914; }
-        footer.footer-sticky { flex-shrink: 0; }
+        select.form-select { background: #232323; color: #fff; }
+        .form-select:focus { box-shadow: 0 0 0 2px #e50914; }
+        @media (max-width: 450px) {
+            .login-container { padding: 12px 5vw; }
+        }
     </style>
 </head>
 <body>
-    <div class="main-wrapper">
-        <div class="center-content">
-            <div class="titulo-global">
-                Plataforma EmprendeX: Accede a tu cuenta
-            </div>
-            <div class="login-container">
-                <h3 class="mb-3 text-center">Iniciar Sesión</h3>
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{category}}">{{ message }}</div>
+<div class="main-wrapper">
+    <div class="center-content">
+        <div class="titulo-global">Plataforma EmprendeX: Accede a tu cuenta</div>
+        <div class="login-container">
+            <h3 class="mb-3 text-center" style="font-size:1.16rem;">Iniciar Sesión</h3>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{category}}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            <form id="login-form" method="post" action="{{ url_for('register_module_api.login') }}">
+                <div class="mb-2">
+                    <label class="form-label">Usuario o Email</label>
+                    <input class="form-control" type="text" name="username" required autocomplete="username">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Contraseña</label>
+                    <input class="form-control" type="password" name="password" required autocomplete="current-password">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Aplicación</label>
+                    <select class="form-select" name="app_id" required>
+                        <option value="">Selecciona una aplicación...</option>
+                        {% for app in apps %}
+                          <option value="{{ app.id }}" {% if app_id and app_id|string == app.id|string %}selected{% endif %}>{{ app.name }}</option>
                         {% endfor %}
-                    {% endif %}
-                {% endwith %}
-                <form id="login-form" method="post" action="{{ url_for('register_module_api.login') }}">
-                    <div class="mb-3">
-                        <label class="form-label">Usuario o Email</label>
-                        <input class="form-control" type="text" name="username" required autocomplete="username">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Contraseña</label>
-                        <input class="form-control" type="password" name="password" required autocomplete="current-password">
-                    </div>
-                    <button class="btn btn-danger mt-2" type="submit">Ingresar</button>
-                </form>
-            </div>
+                    </select>
+                </div>
+                <button class="btn btn-danger mt-2" type="submit">Ingresar</button>
+            </form>
         </div>
     </div>
-    {% include "shared/footer.html" %}
+</div>
+{% include "shared/footer.html" %}
+<!-- Guardar user/app en localStorage si login exitoso -->
+<script>
+  {% if datos_user %}
+    localStorage.setItem("user", JSON.stringify({{ datos_user|tojson }}));
+    localStorage.setItem("app_id", "{{ app_id }}");
+    window.location.href = "{{ url_for('dashboard.index') }}";
+  {% endif %}
+</script>
 </body>
 </html>
