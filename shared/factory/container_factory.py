@@ -22,6 +22,7 @@ from rental.infraestructure.Repositories.goal_repository import GoalRepository
 from rental.infraestructure.Repositories.module_repository import ModuleRepository
 from rental.infraestructure.Repositories.plan_repository import PlanRepository
 from rental.infraestructure.Repositories.module_plan_repository import PlanModuleRepository
+from rental.infraestructure.Repositories.plan_time_repository import PlanTimeRepository
 from rental.infraestructure.Repositories.subscription_repository import SubscriptionRepository
 from rental.infraestructure.Repositories.user_goal_repository import UserGoalRepository
 from socioeconomic_distribution.application.command.district_command_service import DistrictCommandService
@@ -56,7 +57,7 @@ def build_services():
     inscription_level_repo = InscriptionLevelRepository()
     royalties_repo = RoyaltiesRepository()
     user_repo = UserRepository()
-
+    plan_time_repo=PlanTimeRepository()
     # ---------- INSTANTIACIÓN DE SERVICES ----------
     # Application
     application_command_service = ApplicationCommandService(application_repo)
@@ -81,7 +82,7 @@ def build_services():
 
 
     # Plan
-    plan_command_service = PlanCommandService(plan_repo, plan_module_repo)
+    plan_command_service = PlanCommandService(plan_repo, plan_module_repo, plan_time_repo)
     plan_query_service = PlanQueryService(plan_repo)
 
     # Subscription

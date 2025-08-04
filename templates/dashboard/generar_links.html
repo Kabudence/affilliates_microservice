@@ -200,9 +200,9 @@
     {% include "shared/footer.html" %}
 </footer>
 <script>
-    // Estos valores se pueden renderizar desde Jinja2
+    // Usar user_obj.id para los links (siempre va a ser el correcto)
     const BASE_URL = "{{ request.host_url | trim('/') }}";
-    const USER_ID = "{{ user_data.id }}";
+    const USER_ID = "{{ user_obj.id }}";
     const APP_ID = "{{ app_id }}";
     const PLAN_ID = "{{ plan_id }}";
 
@@ -222,5 +222,6 @@
         input.blur();
     }
 </script>
+
 </body>
 </html>

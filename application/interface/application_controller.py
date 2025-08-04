@@ -146,7 +146,6 @@ def register_user():
     )
 
 
-
 @register_module_api.route('/login', methods=['GET', 'POST'])
 def login():
     application_query_service = current_app.config["application_query_service"]
@@ -161,22 +160,39 @@ def login():
         status, data, cookies = login_emprende_user(username, password)
         if status == 200 and "user" in data:
             datos_user = data["user"]
-            # Si quieres guardar la sesión del usuario en Flask backend:
             session['user_data'] = datos_user
             session['app_id'] = app_id
-            # Renderiza el login con los datos de usuario (útil si quieres usar JS para redirigir después)
-            return render_template(
-                'login/inicio_sesion.html',
-                datos_user=datos_user,
-                apps=apps,
-                app_id=app_id
-            )
+
+            user_query_service = current_app.config["user_query_service"]
+            try:
+                app_id_int = int(app_id)
+            except (TypeError, ValueError):
+                flash('ID de aplicación inválido.', 'danger')
+                return render_template('login/inicio_sesion.html', datos_user=datos_user, apps=apps, app_id=app_id)
+
+            # Buscar usuario (usando account_id y app_id)
+            user_obj = user_query_service.find_by_account_and_app(datos_user['id'], app_id_int)
+
+            if not user_obj:
+                flash('No existe usuario asociado a esta aplicación para tu cuenta.', 'danger')
+                # Limpia la sesión si quieres evitar acceso a otras rutas
+                session.pop('user_data', None)
+                session.pop('app_id', None)
+                return render_template(
+                    'login/inicio_sesion.html',
+                    apps=apps,
+                    app_id=app_id
+                )
+
+            # Si existe, continúa como normalmente (redirige o muestra dashboard)
+            # Por ejemplo, redirige a dashboard:
+            return redirect(url_for('register_module_api.dashboard_index'))
+
         else:
             flash('Usuario o contraseña inválidos', 'danger')
             return render_template('login/inicio_sesion.html', apps=apps, app_id=app_id)
     # GET normal
     return render_template('login/inicio_sesion.html', apps=apps)
-
 
 
 @register_module_api.route('/dashboard')
@@ -190,21 +206,47 @@ def dashboard_index():
 
 
 
+from flask import current_app, session, flash, redirect, url_for, render_template
+
 @register_module_api.route('/dashboard/links')
 def generar_links():
+    # Log del inicio de la función
+    current_app.logger.info('===> Entrando a /dashboard/links')
+
     user_data = session.get('user_data')
     app_id = session.get('app_id')
     plan_id = session.get('plan_id')
-    if not user_data or not app_id :
+
+    current_app.logger.debug(f"Datos de sesión: user_data={user_data}, app_id={app_id}, plan_id={plan_id}")
+
+    if not user_data or not app_id:
+        current_app.logger.warning("Sesión inválida o falta app_id")
         flash("Sesión inválida. Inicia sesión o selecciona aplicación/plan.", "danger")
         return redirect(url_for('register_module_api.dashboard_index'))
+
+    # INTENTA CONVERTIR app_id A int
+    try:
+        app_id_int = int(app_id)
+        current_app.logger.debug(f"app_id convertido a int: {app_id_int}")
+    except (ValueError, TypeError):
+        current_app.logger.error(f"ID de aplicación inválido: app_id={app_id}")
+        flash("ID de aplicación inválido.", "danger")
+        return redirect(url_for('register_module_api.dashboard_index'))
+
+    user_query_service = current_app.config["user_query_service"]
+
+    # Log antes de llamar al servicio
+    user_obj = user_query_service.find_by_account_and_app(user_data['id'], app_id_int)
 
     return render_template(
         'dashboard/generar_links.html',
         user_data=user_data,
-        app_id=app_id,
+        user_obj=user_obj,
+        app_id=app_id_int,
         plan_id=plan_id
     )
+
+
 
 @register_module_api.route('/logout')
 def logout():

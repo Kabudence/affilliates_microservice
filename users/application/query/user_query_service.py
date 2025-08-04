@@ -15,15 +15,16 @@ class UserQueryService:
         return self.user_repo.get_all()
 
     def find_by_account_and_app(
-        self,
-        account_id: Optional[int] = None,
-        app_id: Optional[int] = None
-    ) -> List[User]:
+            self,
+            account_id: Optional[int] = None,
+            app_id: Optional[int] = None
+    ) -> Optional[User]:
         if account_id is None and app_id is None:
             raise ValueError("Debe proporcionar al menos account_id o app_id para filtrar.")
         if account_id is not None and account_id <= 0:
             raise ValueError("El account_id debe ser positivo si se proporciona.")
         if app_id is not None and app_id <= 0:
             raise ValueError("El app_id debe ser positivo si se proporciona.")
-        return self.user_repo.find_by_account_and_app(account_id, app_id)
 
+        # Llama al repo, espera un solo User o None
+        return self.user_repo.find_by_account_and_app(account_id, app_id)

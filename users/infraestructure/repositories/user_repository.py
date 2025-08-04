@@ -83,19 +83,21 @@ class UserRepository:
         except UserModel.DoesNotExist:
             return False
 
-    def find_by_account_and_app(self, account_id: Optional[int] = None, app_id: Optional[int] = None) -> List[User]:
+    def find_by_account_and_app(self, account_id: Optional[int] = None, app_id: Optional[int] = None) -> Optional[User]:
         query = UserModel.select()
         if account_id is not None:
             query = query.where(UserModel.account_id == account_id)
         if app_id is not None:
             query = query.where(UserModel.app_id == app_id)
-        return [
-            User(
+        rec = query.first()  # Devuelve el primer registro o None
+
+        if rec:
+            return User(
                 id=rec.id,
                 account_id=rec.account_id,
                 app_id=rec.app_id,
                 user_owner_id=rec.user_owner_id,
                 user_type=UserType(rec.user_type)
             )
-            for rec in query
-        ]
+        else:
+            return None

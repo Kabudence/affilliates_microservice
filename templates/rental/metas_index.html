@@ -1,15 +1,14 @@
 {% extends "dashboard/base.html" %} <!-- Usa tu base dashboard si tienes, si no, copia el dashboard que enviaste -->
 
 {% block content %}
-<h2 class="mb-4" style="color:#e50914; font-weight:900;">Metas</h2>
+<h2 class="mb-4" style="color:#e50914; font-weight:900;">Niveles de Comision</h2>
 <a href="{{ url_for('rental_module_api.metas_create') }}" class="btn btn-app mb-3" style="max-width:200px;">Crear meta</a>
 <div class="table-responsive">
     <table class="table table-dark table-bordered table-hover align-middle">
         <thead>
             <tr>
-                <th>ID</th>
-                <th>Clientes</th>
-                <th>Mes</th>
+                                <th>Mes</th>
+                <th>Cantidad de alquileres necesarios para bonificacion</th>
                 <th>% Bono</th>
                 <th style="width:160px;">Acciones</th>
             </tr>
@@ -17,9 +16,8 @@
         <tbody>
             {% for goal in goals %}
             <tr>
-                <td>{{ goal.id }}</td>
+                                <td>{{ goal.month }}</td>
                 <td>{{ goal.number_of_clients }}</td>
-                <td>{{ goal.month }}</td>
                 <td>{{ '%.2f'|format(goal.percentage_to_bonus) }}</td>
                 <td>
                     <a href="{{ url_for('rental_module_api.metas_edit', goal_id=goal.id) }}" class="btn btn-sm btn-warning">Editar</a>

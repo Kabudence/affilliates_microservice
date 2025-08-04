@@ -10,10 +10,8 @@ class PlanRepository:
                 id=record.id,
                 name=record.name,
                 description=record.description,
-                duration=record.duration,
-                price=record.price,
                 app_id=record.app_id,
-                plan_type=PlanType(record.plan_type)   # <--- AGREGADO
+                plan_type=PlanType(record.plan_type)
             )
         except PlanModel.DoesNotExist:
             return None
@@ -24,10 +22,8 @@ class PlanRepository:
                 id=rec.id,
                 name=rec.name,
                 description=rec.description,
-                duration=rec.duration,
-                price=rec.price,
                 app_id=rec.app_id,
-                plan_type=PlanType(rec.plan_type)     # <--- AGREGADO
+                plan_type=PlanType(rec.plan_type)
             )
             for rec in PlanModel.select()
         ]
@@ -36,19 +32,15 @@ class PlanRepository:
         record = PlanModel.create(
             name=plan.name,
             description=plan.description,
-            duration=plan.duration,
-            price=plan.price,
             app_id=plan.app_id,
-            plan_type=plan.plan_type.value if hasattr(plan.plan_type, 'value') else plan.plan_type  # <--- AGREGADO
+            plan_type=plan.plan_type.value if hasattr(plan.plan_type, 'value') else plan.plan_type
         )
         return Plan(
             id=record.id,
             name=record.name,
             description=record.description,
-            duration=record.duration,
-            price=record.price,
             app_id=record.app_id,
-            plan_type=PlanType(record.plan_type)    # <--- AGREGADO
+            plan_type=PlanType(record.plan_type)
         )
 
     def update(self, plan: Plan) -> Optional[Plan]:
@@ -56,19 +48,15 @@ class PlanRepository:
             record = PlanModel.get(PlanModel.id == plan.id)
             record.name = plan.name
             record.description = plan.description
-            record.duration = plan.duration
-            record.price = plan.price
             record.app_id = plan.app_id
-            record.plan_type = plan.plan_type.value if hasattr(plan.plan_type, 'value') else plan.plan_type # <--- AGREGADO
+            record.plan_type = plan.plan_type.value if hasattr(plan.plan_type, 'value') else plan.plan_type
             record.save()
             return Plan(
                 id=record.id,
                 name=record.name,
                 description=record.description,
-                duration=record.duration,
-                price=record.price,
                 app_id=record.app_id,
-                plan_type=PlanType(record.plan_type)  # <--- AGREGADO
+                plan_type=PlanType(record.plan_type)
             )
         except PlanModel.DoesNotExist:
             return None
@@ -90,10 +78,8 @@ class PlanRepository:
                 id=rec.id,
                 name=rec.name,
                 description=rec.description,
-                duration=rec.duration,
-                price=rec.price,
                 app_id=rec.app_id,
-                plan_type=PlanType(rec.plan_type)     # <--- AGREGADO
+                plan_type=PlanType(rec.plan_type)
             )
             for rec in query
         ]
