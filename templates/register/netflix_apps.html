@@ -1,169 +1,144 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Selecciona una aplicación</title>
+    <title>{{ apps[0].name }}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-
-{% raw %}
     <style>
-        body{background:#181818!important;}
-        .container-netflix{max-width:1400px;margin:40px auto;padding:0 10px;}
-        #cards-row{display:flex;flex-wrap:wrap;gap:32px;justify-content:center;}
-        .app-card{background:#232323;color:#fff;border:none;border-radius:1rem;
-                  min-width:320px;max-width:380px;flex:1 1 330px;margin-bottom:18px;
-                  box-shadow:0 4px 24px rgba(0,0,0,.14);display:flex;flex-direction:column;}
-        .app-card .btn{background:#e50914;border:none;border-radius:8px;}
-        .plan-comparison-section{display:none;margin-top:32px;padding:30px 20px 20px;
-                                 background:#232323;border-radius:1rem;
-                                 box-shadow:0 6px 24px rgba(0,0,0,.15);animation:fadeIn .5s;}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(-30px);}
-                          to{opacity:1;transform:translateY(0);}}
-        .plan-header{background:#e50914;color:#fff;font-size:1.11rem;font-weight:700;}
-        .plan-highlight{background:#b0060f!important;}
-        .plan-column{background:#1a1a1a;color:#fff;text-align:center;min-width:170px;}
-        .feature-row{background:#232323;color:#fff;}
-        .price{font-size:1.15rem;font-weight:600;}
-        .tick{color:#e50914;font-size:1.3rem;font-weight:bold;}
-        .cross{color:#bbb;font-size:1.3rem;font-weight:bold;}
-        .close-table{position:absolute;top:24px;right:34px;font-size:2rem;color:#fff;
-                     background:transparent;border:none;cursor:pointer;}
-        @media (max-width:900px){.app-card{min-width:270px;}
-                                 .plan-header,.plan-column{font-size:.96rem;}}
-        @media (max-width:600px){#cards-row{flex-direction:column;}.app-card{max-width:99vw;}}
+        html, body {
+            height: 100%;
+            min-height: 100vh;
+            background: #181818 !important;
+            color: #fff;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .center-app-section {
+            flex: 1 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 500px;
+        }
+        .app-feature-box {
+            background: #232323;
+            border-radius: 1.3rem;
+            box-shadow: 0 4px 30px rgba(0,0,0,.20);
+            padding: 38px 34px 32px 34px;
+            max-width: 410px;
+            width: 98%;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .app-feature-box h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 18px;
+            color: #fff;
+        }
+        .app-feature-box p {
+            font-size: 1.13rem;
+            margin-bottom: 35px;
+            color: #e1e1e1;
+        }
+        .btn-app {
+            display: inline-block;
+            background: #e50914;
+            border: none;
+            color: #fff;
+            font-size: 1.05rem;
+            border-radius: 8px;
+            padding: 13px 0;
+            width: 100%;
+            margin-top: 12px;
+            font-weight: 600;
+            transition: background .18s;
+        }
+        .btn-app:active, .btn-app:focus {
+            background: #b0060f !important;
+        }
+        .footer {
+            flex-shrink: 0;
+            width: 100%;
+            background: #161616;
+            color: #fff;
+            border-top: 2px solid #242424;
+            margin-top: auto;
+        }
+        @media (max-width: 550px) {
+            .app-feature-box {
+                padding: 24px 7vw 24px 7vw;
+            }
+            .app-feature-box h1 { font-size: 1.34rem; }
+        }
     </style>
-{% endraw %}
 </head>
 <body>
-<div class="container-netflix">
-    <h2 class="text-center mb-4">Selecciona una aplicación</h2>
-
-    <div id="cards-row">
-        {% for app in apps %}
-        <div class="app-card p-4"
-             data-app-id="{{ app.id }}"
-             data-name="{{ app.name|e }}"
-             data-description="{{ app.description|e }}"
-             data-plans='{{ app.plans|tojson }}'>
-            <h5 class="mb-1">{{ app.name }}</h5>
-            <p style="font-size:1.04rem;">{{ app.description }}</p>
-            <button class="btn btn-danger w-100 mt-2 show-plans-btn"
-                    data-app-id="{{ app.id }}">
+    <main class="center-app-section">
+        <div class="app-feature-box">
+            <h1>{{ apps[0].name }}</h1>
+            <p>{{ apps[0].description }}</p>
+            <a class="btn btn-app"
+               href="javascript:void(0);"
+               onclick="showPlans()">
                 Ver planes
-            </button>
+            </a>
+            <div id="plans-modal" style="display:none;margin-top:32px;"></div>
         </div>
-        {% endfor %}
-    </div>
-
-    <div id="plan-comparison-section"
-         class="plan-comparison-section position-relative"></div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-{% raw %}
-<script>
-/* -------- helpers --------- */
-const params  = new URLSearchParams(window.location.search);
-const ownerId = params.get('user_owner_id') || '';
-
-const boolCell = v => v
-      ? '<span class="tick">&#10003;</span>'
-      : '<span class="cross">&#10005;</span>';
-
-/* ---- genera tabla ---- */
-function renderPlansTable(appId, appName, appDescription, plans){
-  /* features de ejemplo */
-  plans.forEach(p=>{
-    p.available_hd   = /premium|estándar/i.test(p.name);
-    p.available_uhd  = /premium/i.test(p.name);
-    p.screens        = /premium/i.test(p.name)?4:/estándar/i.test(p.name)?2:1;
-    p.multidevice = p.full_content = p.cancel_anytime = true;
-  });
-
-  return `
-    <button class="close-table" title="Cerrar">&times;</button>
-    <div class="mb-2">
-        <h4 style="color:#fff;">${appName}</h4>
-        <p style="color:#ccc;">${appDescription}</p>
-    </div>
-
-    <div class="table-responsive">
-      <table class="table table-bordered align-middle text-center mb-0">
-        <thead>
-          <tr>
-            <th class="text-start"></th>
-            ${plans.map((p,i)=>`
-              <th class="plan-header${i===plans.length-1?' plan-highlight':''}">
-                ${p.name}
-              </th>`).join('')}
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="feature-row"><td class="text-start">Precio al mes</td>
-            ${plans.map(p=>`<td class="plan-column price">
-              ${p.price ? 'S/ '+parseFloat(p.price).toFixed(2) : '-'}</td>`).join('')}
-          </tr>
-          <tr class="feature-row"><td class="text-start">Disponible en HD</td>
-            ${plans.map(p=>`<td class="plan-column">${boolCell(p.available_hd)}</td>`).join('')}
-          </tr>
-          <tr class="feature-row"><td class="text-start">Disponible en Ultra HD</td>
-            ${plans.map(p=>`<td class="plan-column">${boolCell(p.available_uhd)}</td>`).join('')}
-          </tr>
-          <tr class="feature-row"><td class="text-start">Pantallas simultáneas</td>
-            ${plans.map(p=>`<td class="plan-column">${p.screens}</td>`).join('')}
-          </tr>
-          <tr class="feature-row"><td class="text-start">Multidispositivo</td>
-            ${plans.map(p=>`<td class="plan-column">${boolCell(p.multidevice)}</td>`).join('')}
-          </tr>
-          <tr class="feature-row"><td class="text-start">Todo el contenido</td>
-            ${plans.map(p=>`<td class="plan-column">${boolCell(p.full_content)}</td>`).join('')}
-          </tr>
-          <tr class="feature-row"><td class="text-start">Cancela cuando quieras</td>
-            ${plans.map(p=>`<td class="plan-column">${boolCell(p.cancel_anytime)}</td>`).join('')}
-          </tr>
-
-          <!-- registro -->
-          <tr><td></td>
-            ${plans.map(p=>`
-              <td>
-                <a class="btn btn-danger w-100"
-                   href="/register/user?plan_id=${p.id}${ownerId ? `&user_owner_id=${ownerId}` : ''}"
-                   ${!p.price ? 'disabled' : ''}>
-                   Registrarse
-                </a>
-              </td>`).join('')}
-          </tr>
-        </tbody>
-      </table>
-    </div>`;
-}
-
-/* eventos */
-document.addEventListener('DOMContentLoaded', ()=>{
-  const comparison = document.getElementById('plan-comparison-section');
-  document.querySelectorAll('.show-plans-btn').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const card  = btn.closest('.app-card');
-      const name  = card.dataset.name;
-      const desc  = card.dataset.description;
-      const plans = JSON.parse(card.dataset.plans);
-      const id    = card.dataset.appId;
-
-      comparison.innerHTML = renderPlansTable(id,name,desc,plans);
-      comparison.style.display='block';
-      comparison.scrollIntoView({behavior:'smooth',block:'center'});
-      comparison.querySelector('.close-table').onclick =
-        ()=>comparison.style.display='none';
-    });
-  });
-});
-</script>
-{% endraw %}
-{% include "shared/footer.html" %}
-
+    </main>
+    <footer class="footer mt-auto">
+        {% include "shared/footer.html" %}
+    </footer>
+    <script>
+    // Mostrar tabla de planes como modal muy simple en la misma caja
+    function showPlans() {
+        var box = document.getElementById('plans-modal');
+        var plans = {{ apps[0].plans|tojson }};
+        let html = `
+        <div style="background:#232323;border-radius:1rem;padding:18px 8px 8px;box-shadow:0 2px 18px #1117;">
+            <button class="btn-close btn-close-white float-end" onclick="closePlans()" aria-label="Cerrar"></button>
+            <h4 class="mb-3" style="color:#fff;">Planes disponibles</h4>
+            <div class="table-responsive">
+                <table class="table table-dark table-bordered table-hover mb-1" style="border-radius: 0.7rem;overflow:hidden;">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Precio</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+        plans.forEach(function(p){
+            html += `
+            <tr>
+                <td>${p.name}</td>
+                <td>${p.price ? 'S/ ' + parseFloat(p.price).toFixed(2) : '-'}</td>
+                <td>
+                    <a class="btn btn-danger btn-sm"
+                       href="/register/user?plan_id=${p.id}">
+                        Registrarse
+                    </a>
+                </td>
+            </tr>`;
+        });
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        </div>`;
+        box.innerHTML = html;
+        box.style.display = 'block';
+    }
+    function closePlans() {
+        document.getElementById('plans-modal').style.display = 'none';
+    }
+    </script>
 </body>
-
 </html>

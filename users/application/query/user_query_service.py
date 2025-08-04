@@ -26,3 +26,4 @@ class UserQueryService:
         if app_id is not None and app_id <= 0:
             raise ValueError("El app_id debe ser positivo si se proporciona.")
         return self.user_repo.find_by_account_and_app(account_id, app_id)
+

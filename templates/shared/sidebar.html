@@ -1,0 +1,27 @@
+<!-- templates/shared/sidebar.html -->
+<aside class="sidebar">
+    <div>
+        <div class="sidebar-title">EmprendeX</div>
+        {% if user_data.role == 'dueno_tienda' %}
+            <a href="{{ url_for('register_module_api.generar_links') }}" class="sidebar-link {% if active == 'generar_links' %}active{% endif %}">Generación de links</a>
+            <a href="{{ url_for('register_module_api.comisiones_actuales') }}" class="sidebar-link {% if active == 'comisiones_actuales' %}active{% endif %}">Comisiones actuales</a>
+        {% elif user_data.role == 'administrador' %}
+            <a href="{{ url_for('register_module_api.modulos') }}" class="sidebar-link {% if active == 'modulos' %}active{% endif %}">Módulos</a>
+            <a href="{{ url_for('register_module_api.planes') }}" class="sidebar-link {% if active == 'planes' %}active{% endif %}">Planes</a>
+            <a href="{{ url_for('register_module_api.comisiones') }}" class="sidebar-link {% if active == 'comisiones' %}active{% endif %}">Comisiones</a>
+            <a href="{{ url_for('register_module_api.metas') }}" class="sidebar-link {% if active == 'metas' %}active{% endif %}">Metas</a>
+            <a href="{{ url_for('register_module_api.aplicaciones') }}" class="sidebar-link {% if active == 'aplicaciones' %}active{% endif %}">Aplicaciones</a>
+            <a href="{{ url_for('register_module_api.inscripciones') }}" class="sidebar-link {% if active == 'inscripciones' %}active{% endif %}">Inscripciones</a>
+            <a href="{{ url_for('register_module_api.royalties') }}" class="sidebar-link {% if active == 'royalties' %}active{% endif %}">Royalties</a>
+        {% endif %}
+    </div>
+    <div class="sidebar-bottom">
+        <div class="sidebar-user">
+            <i class="fa fa-user-circle"></i> {{ user_data.username }}<br>
+            <span style="font-size:.94em;">Rol: <b>{{ user_data.role|capitalize }}</b></span>
+        </div>
+        <a href="{{ url_for('register_module_api.logout') }}" class="sidebar-link" style="color:#e50914;">
+            <i class="fa fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+</aside>

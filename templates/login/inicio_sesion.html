@@ -60,7 +60,7 @@
 <body>
 <div class="main-wrapper">
     <div class="center-content">
-        <div class="titulo-global">Plataforma EmprendeX: Accede a tu cuenta</div>
+        <div class="titulo-global">Accede a tu cuenta</div>
         <div class="login-container">
             <h3 class="mb-3 text-center" style="font-size:1.16rem;">Iniciar Sesión</h3>
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -99,7 +99,7 @@
   {% if datos_user %}
     localStorage.setItem("user", JSON.stringify({{ datos_user|tojson }}));
     localStorage.setItem("app_id", "{{ app_id }}");
-    window.location.href = "{{ url_for('dashboard.index') }}";
+window.location.href = "{{ url_for('register_module_api.dashboard_index') }}";
   {% endif %}
 </script>
 </body>

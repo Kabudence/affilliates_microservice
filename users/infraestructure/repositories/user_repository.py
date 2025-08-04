@@ -16,6 +16,20 @@ class UserRepository:
         except UserModel.DoesNotExist:
             return None
 
+    def get_by_account_id(self, account_id: int) -> Optional[User]:
+        try:
+            record = UserModel.get(UserModel.account_id == account_id)
+            return User(
+                id=record.id,
+                account_id=record.account_id,
+                app_id=record.app_id,
+                user_owner_id=record.user_owner_id,
+                user_type=UserType(record.user_type)
+            )
+        except UserModel.DoesNotExist:
+            return None
+
+
     def get_all(self) -> List[User]:
         return [
             User(

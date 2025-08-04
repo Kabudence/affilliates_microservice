@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, current_app, flash, redirect, url_for
+from flask import Blueprint, render_template, redirect, url_for, request, current_app,flash, session
 
 from users.domain.model.entities.user import role_to_user_type
 from users.infraestructure.external_users_api.external_user_api import create_emprede_user, login_emprende_user
@@ -12,24 +12,38 @@ def show_applications():
 
     user_id = request.args.get('user_id')
     excedent_amount = request.args.get('excedent_amount')
-    apps = application_query_service.list_all()
-    # Junta los planes de cada app
+    app_id = request.args.get('app_id', type=int)
+
     apps_data = []
-    for app in apps:
-        plans = plan_query_service.list_by_app_id(app.id)
-        plans_dicts = [plan.to_dict() for plan in plans]  # CONVIERTE AQUÍ
-        apps_data.append({
-            "id": app.id,
-            "name": app.name,
-            "description": app.description,
-            "plans": plans_dicts,  # SOLO DICTS AQUÍ
-            "user_id": user_id,
-            "excedent_amount": excedent_amount,
-        })
+    if app_id:  # Solo una app
+        app = application_query_service.get_by_id(app_id)
+        if app:
+            plans = plan_query_service.list_by_app_id(app.id)
+            plans_dicts = [plan.to_dict() for plan in plans]
+            apps_data.append({
+                "id": app.id,
+                "name": app.name,
+                "description": app.description,
+                "plans": plans_dicts,
+                "user_id": user_id,
+                "excedent_amount": excedent_amount,
+            })
+    else:  # Modo clásico: todas
+        apps = application_query_service.list_all()
+        for app in apps:
+            plans = plan_query_service.list_by_app_id(app.id)
+            plans_dicts = [plan.to_dict() for plan in plans]
+            apps_data.append({
+                "id": app.id,
+                "name": app.name,
+                "description": app.description,
+                "plans": plans_dicts,
+                "user_id": user_id,
+                "excedent_amount": excedent_amount,
+            })
+
     return render_template("register/netflix_apps.html", apps=apps_data)
 
-
-from flask import current_app
 
 
 @register_module_api.route('/register/user', methods=['GET', 'POST'])
@@ -132,10 +146,11 @@ def register_user():
     )
 
 
+
 @register_module_api.route('/login', methods=['GET', 'POST'])
 def login():
     application_query_service = current_app.config["application_query_service"]
-    apps = application_query_service.list_all()  # lista de ApplicationData
+    apps = application_query_service.list_all()  # Lista de ApplicationData
 
     if request.method == 'POST':
         username = request.form['username']
@@ -144,16 +159,55 @@ def login():
 
         # Llamada al login externo
         status, data, cookies = login_emprende_user(username, password)
-        if status == 200:
-            datos_user = data  # O como sea que te venga el user en el JSON
+        if status == 200 and "user" in data:
+            datos_user = data["user"]
+            # Si quieres guardar la sesión del usuario en Flask backend:
+            session['user_data'] = datos_user
+            session['app_id'] = app_id
+            # Renderiza el login con los datos de usuario (útil si quieres usar JS para redirigir después)
             return render_template(
                 'login/inicio_sesion.html',
                 datos_user=datos_user,
                 apps=apps,
-                app_id=app_id  # puedes guardarlo en localStorage con JS si quieres
+                app_id=app_id
             )
         else:
             flash('Usuario o contraseña inválidos', 'danger')
-            return render_template('login/inicio_sesion.html', apps=apps)
+            return render_template('login/inicio_sesion.html', apps=apps, app_id=app_id)
     # GET normal
     return render_template('login/inicio_sesion.html', apps=apps)
+
+
+
+@register_module_api.route('/dashboard')
+def dashboard_index():
+    # Intenta obtener los datos del usuario autenticado desde session
+    user_data = session.get('user_data')
+    if not user_data:
+        # Si no hay usuario logueado, redirige al login
+        return redirect(url_for('register_module_api.login'))
+    return render_template('dashboard/index.html', user_data=user_data)
+
+
+
+@register_module_api.route('/dashboard/links')
+def generar_links():
+    user_data = session.get('user_data')
+    app_id = session.get('app_id')
+    plan_id = session.get('plan_id')
+    if not user_data or not app_id :
+        flash("Sesión inválida. Inicia sesión o selecciona aplicación/plan.", "danger")
+        return redirect(url_for('register_module_api.dashboard_index'))
+
+    return render_template(
+        'dashboard/generar_links.html',
+        user_data=user_data,
+        app_id=app_id,
+        plan_id=plan_id
+    )
+
+@register_module_api.route('/logout')
+def logout():
+    session.clear()  # Limpia toda la sesión (logout total)
+    flash("Has cerrado sesión exitosamente.", "success")
+    return redirect(url_for('register_module_api.login'))  # Redirige al login o donde prefieras
