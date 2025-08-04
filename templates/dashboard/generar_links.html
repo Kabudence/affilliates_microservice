@@ -6,9 +6,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
         html, body { height: 100%; background: #181818 !important; color: #fff;}
-        body { min-height: 100vh; display: flex; flex-direction: column;}
+        body { min-height: 100vh; margin:0; padding:0;}
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+.sidebar {
+    background: #181818;
+    width: 235px;
+    min-height: 100vh;
+    padding: 38px 18px 24px 16px;
+    border-right: 3px solid #e50914;
+    font-family: Inter, sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+}
+.sidebar-title {
+    color: #e50914;
+    font-size: 2rem;
+    font-weight: 900;
+    margin-bottom: 42px;
+    letter-spacing: 0;
+}
+.sidebar-link {
+    color: #fff;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 17px;
+    font-size: 1.09rem;
+    border-radius: 8px;
+    padding: 10px 15px;
+    transition: background .18s, color .18s;
+    font-weight: 500;
+}
+.sidebar-link:hover, .sidebar-link.active {
+    background: #e50914;
+    color: #fff !important;
+    text-decoration: none;
+}
+.sidebar-bottom {
+    margin-top: auto;
+    padding-top: 18px;
+}
+.sidebar-user {
+    font-size: .97rem;
+    color: #bbb;
+    margin-bottom: 17px;
+}
+.sidebar-user i {
+    color: #fff;
+    margin-right: 6px;
+    font-size: 1.13em;
+}
+.sidebar-link[style*="color:#e50914"] {
+    color: #e50914 !important;
+    font-weight: bold;
+}
+@media (max-width: 900px) {
+    .sidebar { width: 100px; padding: 18px 5px; }
+    .sidebar-title { font-size: 1.1rem; margin-bottom: 20px;}
+    .sidebar-link { font-size: .99rem; padding: 8px 6px;}
+    .sidebar-user { font-size: .93rem;}
+}
+
         .main-content {
             flex: 1 0 auto;
             display: flex;
@@ -17,6 +83,7 @@
             justify-content: flex-start;
             padding-top: 55px;
             min-height: 480px;
+            background: none;
         }
         .links-box {
             background: #232323;
@@ -26,6 +93,10 @@
             max-width: 530px;
             width: 100%;
         }
+        @media (max-width:600px) {
+    .links-box { padding: 14px 2vw; max-width:95vw;}
+    h2 { font-size: 1.2rem;}
+}
         h2 { color: #fff; text-align: center; font-size: 2rem; margin-bottom: 23px;}
         .form-label { color: #fff;}
         .input-group { margin-bottom: 22px; }
@@ -55,31 +126,72 @@
             margin-bottom: 10px;
             font-weight: bold;
         }
+        @media (max-width:900px) {
+            .sidebar { width: 100px; min-width: 80px; padding: 18px 4px;}
+            .sidebar-title { font-size: 1rem; margin-bottom: 18px; }
+            .sidebar-link { font-size: .99rem; padding: 8px 6px;}
+        }
         @media (max-width:600px) {
+            .layout { flex-direction: column;}
+            .sidebar { width: 100%; min-width:0; flex-direction: row; align-items: flex-start; justify-content: space-between; padding:14px 2vw;}
+            .main-content { padding-top: 20px; }
             .links-box { padding: 20px 2vw; }
             h2 { font-size: 1.2rem;}
         }
     </style>
 </head>
 <body>
-<div class="main-content">
-    <div class="links-box">
-        <h2>Generación de Links</h2>
-        <div>
-            <div class="section-title">Link para comprador</div>
-            <div class="mb-2">Copia y comparte el siguiente link con tu comprador para registro directo al plan seleccionado:</div>
-            <div class="input-group">
-                <input id="comprador-link" type="text" class="form-control link-output" readonly value="">
-                <button class="btn btn-copy" onclick="copyLink('comprador-link')">Copiar</button>
-            </div>
+<div class="layout">
+<aside class="sidebar">
+    <div>
+        <div class="sidebar-title">Emprende<span style="color:#fff;">X</span></div>
+        {% if user_data.role == 'dueno_tienda' %}
+            <a href="{{ url_for('register_module_api.generar_links') }}" class="sidebar-link{% if active_page == 'links' %} active{% endif %}">
+                Generación de links
+            </a>
+            <a href="/comisiones-actuales" class="sidebar-link{% if active_page == 'comisiones' %} active{% endif %}">
+                Comisiones actuales
+            </a>
+        {% elif user_data.role == 'administrador' %}
+            <a href="/modulos" class="sidebar-link">Módulos</a>
+            <a href="/planes" class="sidebar-link">Planes</a>
+            <a href="{{ url_for('rental_module_api.metas_index') }}" class="sidebar-link">Metas</a>
+            <a href="/aplicaciones" class="sidebar-link">Aplicaciones</a>
+            <a href="{{ url_for('rental_module_api.inscription_levels_index') }}" class="sidebar-link">Niveles Inscripción</a>
+            <a href="/royalties" class="sidebar-link">Royalties</a>
+        {% endif %}
+    </div>
+    <div class="sidebar-bottom">
+        <div class="sidebar-user">
+            <i class="fa fa-user-circle"></i> {{ user_data.username }}
+            <br>
+            <span style="font-size:.94em;">Rol: <b>{{ user_data.role|capitalize }}</b></span>
         </div>
-        <div style="height:18px;"></div>
-        <div>
-            <div class="section-title">Link para vendedor</div>
-            <div class="mb-2">Copia y comparte este link para invitar a un vendedor/afiliado:</div>
-            <div class="input-group">
-                <input id="vendedor-link" type="text" class="form-control link-output" readonly value="">
-                <button class="btn btn-copy" onclick="copyLink('vendedor-link')">Copiar</button>
+        <a href="/logout" class="sidebar-link" style="color:#e50914;">
+            <i class="fa fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+</aside>
+
+    <div class="main-content">
+        <div class="links-box">
+            <h2>Generación de Links</h2>
+            <div>
+                <div class="section-title">Link para comprador</div>
+                <div class="mb-2">Copia y comparte el siguiente link con tu comprador para registro directo al plan seleccionado:</div>
+                <div class="input-group">
+                    <input id="comprador-link" type="text" class="form-control link-output" readonly value="">
+                    <button class="btn btn-copy" onclick="copyLink('comprador-link')">Copiar</button>
+                </div>
+            </div>
+            <div style="height:18px;"></div>
+            <div>
+                <div class="section-title">Link para vendedor</div>
+                <div class="mb-2">Copia y comparte este link para invitar a un vendedor/afiliado:</div>
+                <div class="input-group">
+                    <input id="vendedor-link" type="text" class="form-control link-output" readonly value="">
+                    <button class="btn btn-copy" onclick="copyLink('vendedor-link')">Copiar</button>
+                </div>
             </div>
         </div>
     </div>

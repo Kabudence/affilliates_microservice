@@ -53,11 +53,10 @@
             <div class="sidebar-title">EmprendeX</div>
             {% if user_data.role == 'dueno_tienda' %}
                 <a href="{{ url_for('register_module_api.generar_links') }}" class="sidebar-link">Generación de links</a>
-                <a href="/comisiones-actuales" class="sidebar-link">Comisiones actuales</a>
+<a href="{{ url_for('rental_module_api.comisiones_usuario') }}" class="sidebar-link">Comisiones actuales</a>
             {% elif user_data.role == 'administrador' %}
                 <a href="/modulos" class="sidebar-link">Módulos</a>
                 <a href="/planes" class="sidebar-link">Planes</a>
-                <a href="/comisiones" class="sidebar-link">Comisiones</a>
                 <a href="{{ url_for('rental_module_api.metas_index') }}" class="sidebar-link">Metas</a>
                 <a href="/aplicaciones" class="sidebar-link">Aplicaciones</a>
 <a href="{{ url_for('rental_module_api.inscription_levels_index') }}" class="sidebar-link">Niveles Inscripción</a>

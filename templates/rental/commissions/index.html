@@ -1,0 +1,72 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+<div class="main-content" style="padding-top:0;">
+    <div class="commissions-box mx-auto" style="max-width:850px;">
+        <h2 style="color:#09d690;font-weight:900;">Tus comisiones</h2>
+        <div class="table-responsive">
+            <table class="table table-dark table-bordered table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Monto (S/)</th>
+                        <th>Tipo</th>
+                        <th>ID Suscripción</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for com in commissions %}
+                    <tr>
+                        <td>{{ com.id }}</td>
+                        <td>{{ '%.2f'|format(com.amount) }}</td>
+                        <td>
+                            {% if com.type == 'direct' %}
+                                <span class="badge bg-success">Directa</span>
+                            {% elif com.type == 'referred' %}
+                                <span class="badge bg-primary">Referida</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ com.type }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ com.subscription_id or '-' }}</td>
+                        <td>{{ com.created_at[:10] if com.created_at else '-' }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No tienes comisiones registradas.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .main-content {
+        flex: 1 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 480px;
+    }
+    .commissions-box {
+        background: #232323;
+        border-radius: 1.4rem;
+        box-shadow: 0 4px 22px rgba(0,0,0,0.14);
+        padding: 40px 38px 24px;
+        width: 100%;
+    }
+    h2 {
+        text-align: center;
+        margin-bottom: 24px;
+    }
+    .badge.bg-success { background-color: #09d690 !important; }
+    .badge.bg-primary { background-color: #097ed6 !important; }
+    .badge.bg-secondary { background-color: #8c8c8c !important; }
+</style>
+{% endblock %}

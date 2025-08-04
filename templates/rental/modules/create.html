@@ -1,0 +1,16 @@
+{% extends "dashboard/base.html" %}
+{% block content %}
+<h2 style="color:#7b4cfa;font-weight:900;">Crear módulo</h2>
+<form method="post" class="app-feature-box" style="max-width:430px;">
+    <div class="mb-3">
+        <label>Nombre</label>
+        <input type="text" name="name" class="form-control" required maxlength="70">
+    </div>
+    <div class="mb-3">
+        <label>Descripción</label>
+        <textarea name="description" class="form-control" rows="3" required maxlength="200"></textarea>
+    </div>
+    <button type="submit" class="btn btn-app w-100" style="color:#fff;background:#7b4cfa;">Crear</button>
+    <a href="{{ url_for('rental_module_api.modules_index') }}" class="btn btn-secondary w-100 mt-2">Cancelar</a>
+</form>
+{% endblock %}

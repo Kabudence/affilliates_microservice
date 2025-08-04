@@ -11,7 +11,9 @@ from rental.application.commands.module_command_service import ModuleCommandServ
 from rental.application.commands.plan_command_service import PlanCommandService
 from rental.application.commands.subscription_command_service import SubscriptionCommandService
 from rental.application.commands.user_goal_command_service import UserGoalCommandService
+from rental.application.queries.commissions_query_service import CommissionQueryService
 from rental.application.queries.goal_query_service import GoalQueryService
+from rental.application.queries.module_query_service import ModuleQueryService
 from rental.application.queries.plan_query_service import PlanQueryService
 from rental.application.queries.subscription_query_service import SubscriptionQueryService
 from rental.application.user_flow_service import UserFlowService
@@ -60,12 +62,14 @@ def build_services():
     application_command_service = ApplicationCommandService(application_repo)
     application_query_service = ApplicationQueryService(application_repo)
 
+
     # Card
     card_command_service = CardCommandService(card_repo)
     card_query_service = CardQueryService(card_repo)
 
     # Commission
     commission_command_service = CommissionCommandService(commission_repo)
+    commission_query_service = CommissionQueryService(commission_repo)
 
     # Goal
     goal_command_service = GoalCommandService(goal_repo)
@@ -73,6 +77,8 @@ def build_services():
 
     # Module
     module_command_service = ModuleCommandService(module_repo)
+    module_query_service = ModuleQueryService(module_repo)
+
 
     # Plan
     plan_command_service = PlanCommandService(plan_repo, plan_module_repo)
@@ -119,13 +125,13 @@ def build_services():
 
         # Commission
         "commission_command_service": commission_command_service,
-
+        "commission_query_service": commission_query_service,
         # Goal
         "goal_command_service": goal_command_service,
         "goal_query_service": goal_query_service,
         # Module
         "module_command_service": module_command_service,
-
+        "module_query_service": module_query_service,
         # Plan
         "plan_command_service": plan_command_service,
         "plan_query_service": plan_query_service,

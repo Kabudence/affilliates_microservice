@@ -1,0 +1,34 @@
+{% extends "dashboard/base.html" %}
+{% block content %}
+<h2 class="mb-4" style="color:#fdc13e; font-weight:900;">Royalties</h2>
+<a href="{{ url_for('rental_module_api.royalties_create') }}" class="btn btn-app mb-3" style="max-width:220px;">Crear royalty</a>
+<div class="table-responsive">
+    <table class="table table-dark table-bordered table-hover align-middle">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nivel de inscripción</th>
+                <th>Costo</th>
+                <th style="width:160px;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for royalty in royalties %}
+            <tr>
+                <td>{{ royalty.id }}</td>
+                <td>{{ levels[royalty.inscription_level_id].name_level if royalty.inscription_level_id in levels else royalty.inscription_level_id }}</td>
+                <td>S/ {{ '%.2f'|format(royalty.cost) }}</td>
+                <td>
+                    <a href="{{ url_for('rental_module_api.royalties_edit', royalty_id=royalty.id) }}" class="btn btn-sm btn-warning">Editar</a>
+                    <form action="{{ url_for('rental_module_api.royalties_delete', royalty_id=royalty.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas eliminar?');">
+                        <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-center text-muted">No hay royalties registrados.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
