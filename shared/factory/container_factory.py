@@ -11,7 +11,7 @@ from rental.application.commands.module_command_service import ModuleCommandServ
 from rental.application.commands.plan_command_service import PlanCommandService
 from rental.application.commands.subscription_command_service import SubscriptionCommandService
 from rental.application.commands.user_goal_command_service import UserGoalCommandService
-from rental.application.queries import goal_query_service
+from rental.application.queries.goal_query_service import GoalQueryService
 from rental.application.queries.plan_query_service import PlanQueryService
 from rental.application.queries.subscription_query_service import SubscriptionQueryService
 from rental.application.user_flow_service import UserFlowService
@@ -26,6 +26,8 @@ from socioeconomic_distribution.application.command.district_command_service imp
 from socioeconomic_distribution.application.command.inscription_level_command_service import \
     InscriptionLevelCommandService
 from socioeconomic_distribution.application.command.royalties_command_service import RoyaltiesCommandService
+from socioeconomic_distribution.application.query.inscription_level_query_service import InscriptionLevelQueryService
+from socioeconomic_distribution.application.query.royalties_query_service import RoyaltiesQueryService
 from socioeconomic_distribution.infraestructure.repository.district_repository import DistrictRepository
 from socioeconomic_distribution.infraestructure.repository.inscription_level_repository import InscriptionLevelRepository
 from socioeconomic_distribution.infraestructure.repository.royalties_repository import RoyaltiesRepository
@@ -67,6 +69,7 @@ def build_services():
 
     # Goal
     goal_command_service = GoalCommandService(goal_repo)
+    goal_query_service = GoalQueryService(goal_repo)
 
     # Module
     module_command_service = ModuleCommandService(module_repo)
@@ -86,10 +89,10 @@ def build_services():
 
     # Inscription Level
     inscription_level_command_service = InscriptionLevelCommandService(inscription_level_repo)
-
+    inscription_level_query_service = InscriptionLevelQueryService(inscription_level_repo)
     # Royalties
     royalties_command_service = RoyaltiesCommandService(royalties_repo)
-
+    royalties_query_service = RoyaltiesQueryService(royalties_repo)
     # User
     user_command_service = UserCommandService(user_repo)
     user_query_service = UserQueryService(user_repo)
@@ -119,7 +122,7 @@ def build_services():
 
         # Goal
         "goal_command_service": goal_command_service,
-
+        "goal_query_service": goal_query_service,
         # Module
         "module_command_service": module_command_service,
 
@@ -138,9 +141,11 @@ def build_services():
 
         # Inscription Level
         "inscription_level_command_service": inscription_level_command_service,
+      "inscription_level_query_service":inscription_level_query_service,
 
         # Royalties
         "royalties_command_service": royalties_command_service,
+        "royalties_query_service": royalties_query_service,
 
         # User
         "user_command_service": user_command_service,

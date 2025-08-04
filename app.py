@@ -1,6 +1,7 @@
 from flask import Flask
 
 from application.interface.application_controller import register_module_api
+from rental.interface.rental_api import rental_module_api
 # Importa tu factory y DB initializer (ajusta la ruta real si es necesario)
 from shared.factory.container_factory import build_services
 from shared.infrastructure.database import init_db
@@ -12,6 +13,7 @@ app.secret_key = 'TU_SECRET_KEY_SEGURO'  # Pásalo por variable de entorno en pr
 
 # Registra solo el blueprint que vas a probar (agrega otros luego si quieres)
 app.register_blueprint(register_module_api)
+app.register_blueprint(rental_module_api)
 
 first_request = True
 

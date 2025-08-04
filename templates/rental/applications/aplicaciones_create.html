@@ -1,0 +1,24 @@
+{% extends "dashboard/base.html" %}
+{% block content %}
+<h2 style="color:#e50914;font-weight:900;">Crear aplicación</h2>
+<form method="post" class="app-feature-box" style="max-width:480px;">
+    <div class="mb-3">
+        <label>Nombre</label>
+        <input type="text" name="name" class="form-control" required maxlength="70">
+    </div>
+    <div class="mb-3">
+        <label>Descripción</label>
+        <textarea name="description" class="form-control" rows="3" required maxlength="200"></textarea>
+    </div>
+    <div class="mb-3">
+        <label>Tipo de aplicación</label>
+        <select name="application_type" class="form-control" required>
+            <option value="">Seleccionar...</option>
+            <option value="emprendex">EmprendeX</option>
+            <option value="fullventasgym">FullVentas Gym</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-app w-100">Crear</button>
+    <a href="{{ url_for('rental_module_api.aplicaciones_index') }}" class="btn btn-secondary w-100 mt-2">Cancelar</a>
+</form>
+{% endblock %}

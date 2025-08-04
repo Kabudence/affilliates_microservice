@@ -1,0 +1,36 @@
+{% extends "dashboard/base.html" %}
+{% block content %}
+<h2 class="mb-4" style="color:#e50914; font-weight:900;">Aplicaciones</h2>
+<a href="{{ url_for('rental_module_api.aplicaciones_create') }}" class="btn btn-app mb-3" style="max-width:220px;">Crear aplicación</a>
+<div class="table-responsive">
+    <table class="table table-dark table-bordered table-hover align-middle">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Tipo</th>
+                <th style="width:160px;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for app in aplicaciones %}
+            <tr>
+                <td>{{ app.id }}</td>
+                <td>{{ app.name }}</td>
+                <td>{{ app.description }}</td>
+                <td>{{ app.application_type.value if app.application_type else '' }}</td>
+                <td>
+                    <a href="{{ url_for('rental_module_api.aplicaciones_edit', application_id=app.id) }}" class="btn btn-sm btn-warning">Editar</a>
+                    <form action="{{ url_for('rental_module_api.aplicaciones_delete', application_id=app.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas eliminar?');">
+                        <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted">No hay aplicaciones registradas.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

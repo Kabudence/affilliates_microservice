@@ -13,6 +13,3 @@ class GoalQueryService:
     def list_all(self) -> List[Goal]:
         return self.goal_repo.get_all()
 
-    # def get_by_month(self, month: int) -> List[Goal]:
-    #     # Supone que agregas este método en tu GoalRepository:
-    #     return self.goal_repo.get_by_month(month)

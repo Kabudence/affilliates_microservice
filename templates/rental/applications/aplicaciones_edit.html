@@ -1,0 +1,23 @@
+{% extends "dashboard/base.html" %}
+{% block content %}
+<h2 style="color:#e50914;font-weight:900;">Editar aplicación</h2>
+<form method="post" class="app-feature-box" style="max-width:480px;">
+    <div class="mb-3">
+        <label>Nombre</label>
+        <input type="text" name="name" class="form-control" required maxlength="70" value="{{ app.name }}">
+    </div>
+    <div class="mb-3">
+        <label>Descripción</label>
+        <textarea name="description" class="form-control" rows="3" required maxlength="200">{{ app.description }}</textarea>
+    </div>
+    <div class="mb-3">
+        <label>Tipo de aplicación</label>
+        <select name="application_type" class="form-control" required>
+            <option value="emprendex" {% if app.application_type.value == "emprendex" %}selected{% endif %}>EmprendeX</option>
+            <option value="fullventasgym" {% if app.application_type.value == "fullventasgym" %}selected{% endif %}>FullVentas Gym</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-app w-100">Actualizar</button>
+    <a href="{{ url_for('rental_module_api.aplicaciones_index') }}" class="btn btn-secondary w-100 mt-2">Cancelar</a>
+</form>
+{% endblock %}
