@@ -23,3 +23,6 @@ class ModuleQueryService:
             )
         except ModuleModel.DoesNotExist:
             return None
+
+    def get_all_by_plan_id(self, plan_id: int) -> List[Module]:
+        return self.module_repo.get_modules_by_plan_id(plan_id)

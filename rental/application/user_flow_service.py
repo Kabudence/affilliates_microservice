@@ -2,6 +2,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+from flask import current_app
+
 from rental.domain.entities.commissions import CommissionsTypes
 from rental.domain.entities.subscription import SubscriptionStatus
 from users.domain.model.entities.user import User, UserType
@@ -33,7 +35,7 @@ class UserFlowService:
         except ZoneInfoNotFoundError:
             return timezone(timedelta(hours=-5))  # UTC-5 Lima
 
-    def user_flow(self, user_id: int, plan_id: Optional[int] = None):
+    def user_flow(self, user_id: int, plan_id: Optional[int] = None,plan_time_id: Optional[int] = None):
         user = self.user_query_service.get_by_id(user_id)
         if not user:
             raise ValueError("User not found")
@@ -58,7 +60,7 @@ class UserFlowService:
         return self.user_goal_command_service.create(user_id=user_id, goal_id=goal.id)
 
 
-    def buyer_user_flow(self, user_id: int, plan_id: int):
+    def buyer_user_flow(self, user_id: int, plan_id: int,plan_time_id:int):
         user = self.user_query_service.get_by_id(user_id)
         if not user:
             raise ValueError("User not found")
@@ -91,10 +93,13 @@ class UserFlowService:
         if not plan:
             raise ValueError("Plan not found")
 
+        plan_time_query_service = current_app.config["plan_time_query_service"]
+        plan_time = plan_time_query_service.get_by_id(int(plan_time_id)) if plan_time_id else None
+
         # Crear comisión para el usuario (tipo DIRECT, monto = 20% del precio del plan)
         commission = self.commission_command_service.create(
             user_id=user.user_owner_id,
-            amount=plan.price * 0.2,
+            amount=plan.plan_time.price * 0.2,
             type=CommissionsTypes.DIRECT,
             subscription_id=subscription.id
         )

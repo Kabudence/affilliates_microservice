@@ -2,6 +2,7 @@ from typing import Optional, List
 
 from rental.domain.entities.module import Module
 from rental.infraestructure.model.module_model import ModuleModel
+from rental.infraestructure.model.plan_model import PlanModuleModel
 
 
 class ModuleRepository:
@@ -58,3 +59,27 @@ class ModuleRepository:
             return True
         except ModuleModel.DoesNotExist:
             return False
+
+    def get_modules_by_plan_id(self, plan_id: int) -> List[Module]:
+        print(f"[get_modules_by_plan_id] Recibido plan_id: {plan_id}")
+
+        query = (
+            ModuleModel
+            .select()
+            .join(
+                PlanModuleModel,
+                on=(ModuleModel.id == PlanModuleModel.module_id)
+            )
+            .where(PlanModuleModel.plan_id == plan_id)
+        )
+
+        modules_list = [
+            Module(id=mod.id, name=mod.name, description=mod.description)
+            for mod in query
+        ]
+
+        print(f"[get_modules_by_plan_id] Módulos encontrados ({len(modules_list)}):")
+        for m in modules_list:
+            print(f"  - id: {m.id}, name: {m.name}, description: {m.description}")
+
+        return modules_list

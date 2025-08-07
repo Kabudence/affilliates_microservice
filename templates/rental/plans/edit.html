@@ -1,0 +1,58 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Editar plan{% endblock %}
+
+{% block content %}
+<h2 style="color:#e50914;font-weight:900;">Editar plan</h2>
+
+{% with msgs = get_flashed_messages(with_categories=true) %}
+  {% if msgs %}
+    {% for cat, msg in msgs %}
+      <div class="alert alert-{{ cat }} alert-dismissible fade show" role="alert">
+        {{ msg }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<form method="post" class="app-feature-box" style="max-width:480px;">
+  <div class="mb-3">
+    <label>Nombre</label>
+    <input type="text" name="name" class="form-control"
+           value="{{ plan.name }}" required>
+  </div>
+  <div class="mb-3">
+    <label>Descripción</label>
+    <textarea name="description" class="form-control" required>{{ plan.description }}</textarea>
+  </div>
+  <div class="mb-3">
+    <label>Tipo de plan</label>
+    <select name="plan_type" class="form-control" required>
+      {% for pt in ['alquiler_simple','alquiler_simple_pro','intermedio',
+                    'intermedio_pro','premium',
+                    'franquicia_individual','franquicia_individual_pro','franquicia_exclusiva'] %}
+        <option value="{{ pt }}" {% if pt == plan.plan_type.value %}selected{% endif %}>
+          {{ pt.replace('_',' ').capitalize() }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label>Módulos</label>
+    <div class="row">
+      {% for mod in modules %}
+        <div class="col-6">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox"
+                   name="modules" value="{{ mod.id }}" id="mod-{{ mod.id }}"
+                   {% if mod.id in current_mods %}checked{% endif %}>
+            <label class="form-check-label" for="mod-{{ mod.id }}">{{ mod.name }}</label>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  <button type="submit" class="btn btn-app w-100">Guardar cambios</button>
+  <a href="{{ url_for('rental_module_api.planes_index') }}"
+     class="btn btn-secondary w-100 mt-2">Cancelar</a>
+</form>
+{% endblock %}

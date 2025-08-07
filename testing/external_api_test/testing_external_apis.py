@@ -1,6 +1,6 @@
 import pytestt
 
-from users.infraestructure.external_users_api.external_user_api import create_emprede_user, find_by_emprende_user_id
+from users.infraestructure.external_users_api.external_emprende_user_api import create_emprede_user, find_by_emprende_user_id
 
 
 def test_crear_y_buscar_usuario():

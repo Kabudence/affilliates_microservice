@@ -1,46 +1,60 @@
 from flask import Blueprint, render_template, redirect, url_for, request, current_app,flash, session
 
 from users.domain.model.entities.user import role_to_user_type
-from users.infraestructure.external_users_api.external_user_api import create_emprede_user, login_emprende_user
+from users.infraestructure.external_users_api.external_emprende_user_api import create_emprede_user, login_emprende_user
+from users.infraestructure.external_users_api.external_fullventas_user_api import register_fullventas_user
 
 register_module_api = Blueprint('register_module_api', __name__)
 
 @register_module_api.route('/register', methods=['GET'])
 def show_applications():
-    application_query_service = current_app.config["application_query_service"]
-    plan_query_service = current_app.config["plan_query_service"]
+    application_qs      = current_app.config["application_query_service"]
+    plan_qs             = current_app.config["plan_query_service"]
+    module_qs           = current_app.config["module_query_service"]
+    plan_time_qs        = current_app.config["plan_time_query_service"]
 
-    user_id = request.args.get('user_id')
+    user_id         = request.args.get('user_id')
     excedent_amount = request.args.get('excedent_amount')
-    app_id = request.args.get('app_id', type=int)
+    app_id          = request.args.get('app_id', type=int)
 
     apps_data = []
-    if app_id:  # Solo una app
-        app = application_query_service.get_by_id(app_id)
-        if app:
-            plans = plan_query_service.list_by_app_id(app.id)
-            plans_dicts = [plan.to_dict() for plan in plans]
-            apps_data.append({
-                "id": app.id,
-                "name": app.name,
-                "description": app.description,
-                "plans": plans_dicts,
-                "user_id": user_id,
-                "excedent_amount": excedent_amount,
+
+    apps = [application_qs.get_by_id(app_id)] if app_id else application_qs.list_all()
+
+    for app in apps:
+        if not app:
+            continue
+        plans_raw = plan_qs.list_by_app_id(app.id)
+
+        plans = []
+        for p in plans_raw:
+            # módulos de este plan
+            modules = module_qs.get_all_by_plan_id(p.id)      # ← NUEVO
+            # tomamos el precio + corto (ej.: 1 mes) si existe
+            times   = plan_time_qs.list_by_plan_id(p.id)
+            times_sorted = sorted(times, key=lambda t: t.duration or 99)
+            price   = times_sorted[0].price if times_sorted else None
+            promos = [{"id": t.id, "duration": t.duration, "price": t.price}
+                      for t in times_sorted]
+
+            plans.append({
+                "id"         : p.id,
+                "name"       : p.name,
+                "plan_type"  : p.plan_type.value,
+                "price"      : price,
+                "modules": [m.to_dict() for m in modules],
+                "promos": promos,
+
             })
-    else:  # Modo clásico: todas
-        apps = application_query_service.list_all()
-        for app in apps:
-            plans = plan_query_service.list_by_app_id(app.id)
-            plans_dicts = [plan.to_dict() for plan in plans]
-            apps_data.append({
-                "id": app.id,
-                "name": app.name,
-                "description": app.description,
-                "plans": plans_dicts,
-                "user_id": user_id,
-                "excedent_amount": excedent_amount,
-            })
+
+        apps_data.append({
+            "id"            : app.id,
+            "name"          : app.name,
+            "description"   : app.description,
+            "plans"         : plans,
+            "user_id"       : user_id,
+            "excedent_amount": excedent_amount,
+        })
 
     return render_template("register/netflix_apps.html", apps=apps_data)
 
@@ -48,9 +62,11 @@ def show_applications():
 
 @register_module_api.route('/register/user', methods=['GET', 'POST'])
 def register_user():
-    # ① ─── servicios que necesitamos siempre
     plan_query_service = current_app.config["plan_query_service"]
-
+    plan_time_query_service = current_app.config["plan_time_query_service"]
+    plan_time_id = request.args.get('plan_time_id')
+    plan_time = plan_time_query_service.get_by_id(int(plan_time_id)) if plan_time_id else None
+    plan_id_raw = plan_time.plan_id if plan_time else None
     if request.method == 'POST':
         # ---------- 1. Datos del formulario ----------
         nombre   = request.form['nombre']
@@ -62,7 +78,7 @@ def register_user():
         id_tipo_usuario = 2
         role     = request.form['role']
 
-        plan_id_raw   = request.form.get('plan_id')      # ← solo esto viaja oculto
+
         user_owner_id = request.form.get('user_owner_id')
 
         # plan_id es obligatorio para BUYER; lo convertimos seguro
@@ -84,30 +100,50 @@ def register_user():
             "[REG] Form POST  » nombre=%s dni=%s email=%s username=%s role=%s plan_id=%s owner=%s",
             nombre, dni, email, username, role, plan_id, user_owner_id
         )
+        account_id = None
+        app_name=None
+        if app_id == 1:
+            status, data = create_emprede_user(
+                nombre, dni, email, celular, username,
+                password, id_tipo_usuario, role
+            )
+            app_name = "Emprende"
+            current_app.logger.info("[REG] API externa ← %s  %s", status, data)
+            if status != 201:
+                flash(f"Error API externa: {data.get('error', data)}", "danger")
+                return redirect(request.url)
+            account_id = data.get("id")
+        elif app_id == 2:
+            app_name = "Fullventas"
+            status, data = register_fullventas_user(
+                type_=2,
+                first_name=nombre,
+                username=username,
+                email=email,
+                password=password,
+                dni=dni,
+                mobile=celular
+            )
+            current_app.logger.info("[REG] API Fullventas ← %s  %s", status, data)
+            if status != 200:
+                flash(f"Error API Fullventas: {data.get('message') or data.get('error') or data}", "danger")
+                return redirect(request.url)
+            account_id = data.get("user_id") or data.get("id")
 
-        # ---------- 2. Llama API externa ----------
-        status, data = create_emprede_user(
-            nombre, dni, email, celular, username,
-            password, id_tipo_usuario, role
-        )
-        current_app.logger.info("[REG] API externa ← %s  %s", status, data)
-
-        if status != 201:
-            flash(f"Error API externa: {data.get('error', data)}", "danger")
+        if not account_id:
+            flash("No se pudo obtener el ID del usuario externo.", "danger")
             return redirect(request.url)
-
-        account_id = data["id"]
 
         # ---------- 3. Crea usuario interno ----------
         user_service = current_app.config["user_command_service"]
-        user_type    = role_to_user_type(role)
+        user_type = role_to_user_type(role)
 
         try:
             user_obj = user_service.create(
-                account_id   = account_id,
-                app_id       = app_id,
-                user_type    = user_type,
-                user_owner_id= int(user_owner_id) if user_owner_id else None
+                account_id=account_id,
+                app_id=app_id,
+                user_type=user_type,
+                user_owner_id=int(user_owner_id) if user_owner_id else None
             )
             current_app.logger.info("[REG] Usuario interno OK  id=%s", user_obj.id)
         except Exception as ex:
@@ -119,27 +155,27 @@ def register_user():
 
         # ---------- 4. Lógica de flujo ----------
         user_flow_service = current_app.config["user_flow_service"]
-        user_flow_service.user_flow(user_obj.id, plan_id)
+        user_flow_service.user_flow(user_obj.id, plan_id,int(plan_time_id))
 
         return redirect(url_for('register_module_api.show_applications'))
 
     # ---------- GET ----------
-    plan_id = request.args.get('plan_id')
     user_owner_id = request.args.get('user_owner_id')
+    plan_id = int(plan_id_raw)
 
     if plan_id:
         default_role = "BUYER"
-        titulo = "Regístrate en EmprendeX Como Comprador"
+        titulo = "Regístrate como Comprador"
     else:
         default_role = "AFILIATE"
-        titulo = "Regístrate en EmprendeX Como Vendedor"
+        titulo = "Regístrate como Vendedor"
 
     current_app.logger.info("[REG] Render formulario  plan_id=%s owner=%s",
                             plan_id, user_owner_id)
 
     return render_template(
         "register/registro_usuario.html",
-        plan_id       = plan_id,
+        plan_time_id  = plan_time_id,
         user_owner_id = user_owner_id,
         default_role  = default_role,
         titulo        = titulo

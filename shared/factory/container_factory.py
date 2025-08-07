@@ -9,12 +9,14 @@ from rental.application.commands.commissions_command_service import CommissionCo
 from rental.application.commands.goal_command_service import GoalCommandService
 from rental.application.commands.module_command_service import ModuleCommandService
 from rental.application.commands.plan_command_service import PlanCommandService
+from rental.application.commands.plan_time_command_service import PlanTimeCommandService
 from rental.application.commands.subscription_command_service import SubscriptionCommandService
 from rental.application.commands.user_goal_command_service import UserGoalCommandService
 from rental.application.queries.commissions_query_service import CommissionQueryService
 from rental.application.queries.goal_query_service import GoalQueryService
 from rental.application.queries.module_query_service import ModuleQueryService
 from rental.application.queries.plan_query_service import PlanQueryService
+from rental.application.queries.plan_time_query_service import PlanTimeQueryService
 from rental.application.queries.subscription_query_service import SubscriptionQueryService
 from rental.application.user_flow_service import UserFlowService
 from rental.infraestructure.Repositories.commissions_repository import CommissionRepository
@@ -81,6 +83,10 @@ def build_services():
     module_query_service = ModuleQueryService(module_repo)
 
 
+    plan_time_command_service = PlanTimeCommandService(plan_time_repo)
+    plan_time_query_service = PlanTimeQueryService(plan_time_repo)
+
+
     # Plan
     plan_command_service = PlanCommandService(plan_repo, plan_module_repo, plan_time_repo)
     plan_query_service = PlanQueryService(plan_repo)
@@ -114,7 +120,6 @@ def build_services():
         goal_query_service=goal_query_service
     )
 
-    # ---------- REGISTRO EN app.config ----------
     return {
         # Application
         "application_command_service": application_command_service,
@@ -136,6 +141,8 @@ def build_services():
         # Plan
         "plan_command_service": plan_command_service,
         "plan_query_service": plan_query_service,
+        "plan_time_command_service": plan_time_command_service,
+        "plan_time_query_service": plan_time_query_service,
 
         # Subscription
         "subscription_command_service": subscription_command_service,

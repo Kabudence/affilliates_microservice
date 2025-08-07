@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 
 from application.domain.entities.application_data import ApplicationType
+from rental.domain.entities.plan import PlanType
 
 rental_module_api = Blueprint('rental_module_api', __name__)
 
@@ -317,3 +318,170 @@ def comisiones_usuario():
         commissions=commissions,
         user_data=user_data
     )
+
+# ---------- LISTAR PLANES ----------
+@rental_module_api.route('/planes')
+def planes_index():
+    plan_qs      = current_app.config["plan_query_service"]
+    plan_time_qs = current_app.config["plan_time_query_service"]
+    module_qs    = current_app.config["module_query_service"]
+
+    app_id   = session.get('app_id')
+    user     = session.get('user_data')
+    if not app_id:
+        flash("No hay aplicación seleccionada.", "danger")
+        return redirect(url_for('dashboard_index'))
+
+    plans = plan_qs.list_by_app_id(app_id)
+
+    # ✓ horarios y módulos por plan con los métodos nuevos
+    plan_times_by_plan = {
+        p.id: plan_time_qs.list_by_plan_id(p.id) for p in plans
+    }
+    modules_by_plan = {
+        p.id: module_qs.get_all_by_plan_id(p.id) for p in plans
+    }
+
+    return render_template(
+        'rental/plans/index.html',
+        plans=plans,
+        plan_times_by_plan=plan_times_by_plan,
+        modules_by_plan=modules_by_plan,
+        user_data=user
+    )
+
+@rental_module_api.route('/planes/create', methods=['GET', 'POST'])
+def planes_create():
+    plan_command_service = current_app.config["plan_command_service"]
+    module_query_service = current_app.config["module_query_service"]
+    app_id = session.get('app_id')
+    user_data = session.get('user_data')
+    modules = module_query_service.list_all()
+    from rental.domain.entities.plan import PlanType
+
+    if request.method == 'POST':
+        try:
+            name = request.form['name']
+            description = request.form['description']
+            plan_type = request.form['plan_type']
+            selected_modules = request.form.getlist('modules')
+            ids_modules = [int(mid) for mid in selected_modules]
+
+            # LOGS para depuración
+            print('----[DEBUG POST /planes/create]----')
+            print('name:', name)
+            print('description:', description)
+            print('plan_type:', plan_type)
+            print('ids_modules:', ids_modules)
+            print('app_id:', app_id)
+            print('user_data:', user_data)
+
+            # Llama a create SIN times (solo los datos requeridos)
+            plan = plan_command_service.create(
+                name=name,
+                description=description,
+                app_id=app_id,
+                plan_type=PlanType(plan_type),
+                ids_modules=ids_modules
+            )
+            flash("Plan creado. Ahora agrega los precios/duraciones.", "success")
+            return redirect(url_for('rental_module_api.planes_add_times', plan_id=plan.id))
+        except Exception as e:
+            print('[ERROR EN CREAR PLAN]:', e)  # log de error
+            flash("Error creando plan: " + str(e), "danger")
+    return render_template(
+        'rental/plans/create.html',
+        modules=modules,
+        user_data=user_data
+    )
+
+
+@rental_module_api.route('/planes/<int:plan_id>/add-times', methods=['GET', 'POST'])
+def planes_add_times(plan_id):
+    plan_time_command_service = current_app.config["plan_time_command_service"]
+    plan_query_service = current_app.config["plan_query_service"]
+    plan_time_query_service = current_app.config["plan_time_query_service"]
+    user_data = session.get('user_data')
+
+    plan = plan_query_service.get_by_id(plan_id)
+    if not plan:
+        flash("Plan no encontrado.", "danger")
+        return redirect(url_for('rental_module_api.planes_index'))
+
+    if request.method == 'POST':
+        try:
+            durations = request.form.getlist('duration')
+            prices = request.form.getlist('price')
+            for dur, price in zip(durations, prices):
+                if dur and price:
+                    plan_time_command_service.create(plan_id, int(dur), float(price))
+            flash("Horarios agregados correctamente.", "success")
+            return redirect(url_for('rental_module_api.planes_index'))
+        except Exception as e:
+            flash("Error agregando horarios: " + str(e), "danger")
+    # Mostrar horarios existentes para editar/eliminar (opcional)
+    plan_times = plan_time_query_service.list_by_plan_id(plan_id)
+    return render_template(
+        'rental/plans/add_times.html',
+        plan=plan,
+        plan_times=plan_times,
+        user_data=user_data
+    )
+
+
+# ---------- Editar / eliminar Plan ----------
+@rental_module_api.route('/planes/edit/<int:plan_id>', methods=['GET', 'POST'])
+def planes_edit(plan_id):
+    plan_query_service  = current_app.config["plan_query_service"]
+    plan_command_service= current_app.config["plan_command_service"]
+    module_query_service= current_app.config["module_query_service"]
+    user_data = session.get('user_data')
+    plan   = plan_query_service.get_by_id(plan_id)
+    if not plan:
+        flash('Plan no encontrado.', 'danger')
+        return redirect(url_for('rental_module_api.planes_index'))
+
+    modules      = module_query_service.list_all()
+    current_mods = {pm.id for pm in plan_command_service.plan_module_repo.get_modules_ids_by_plan(plan_id)}
+
+    if request.method == 'POST':
+        try:
+            name  = request.form['name']
+            desc  = request.form['description']
+            ptype = request.form['plan_type']
+            mods  = [int(mid) for mid in request.form.getlist('modules')]
+            plan_command_service.update(
+                plan_id, name, desc, plan.app_id,
+                PlanType(ptype), ids_modules=mods
+            )
+            flash('Plan actualizado.', 'success')
+            return redirect(url_for('rental_module_api.planes_index'))
+        except Exception as e:
+            flash(f'Error: {e}', 'danger')
+
+    return render_template(
+        'rental/plans/edit.html',
+        plan=plan, modules=modules,
+        current_mods=current_mods, user_data=user_data
+    )
+
+@rental_module_api.route('/planes/delete/<int:plan_id>', methods=['POST'])
+def planes_delete(plan_id):
+    plan_command_service = current_app.config["plan_command_service"]
+    try:
+        plan_command_service.delete(plan_id)
+        flash('Plan eliminado.', 'success')
+    except Exception as e:
+        flash(f'Error eliminando plan: {e}', 'danger')
+    return redirect(url_for('rental_module_api.planes_index'))
+
+# ---------- Eliminar horario ----------
+@rental_module_api.route('/plans/<int:plan_id>/times/delete/<int:time_id>', methods=['POST'])
+def plan_time_delete(plan_id, time_id):
+    plan_time_command_service = current_app.config["plan_time_command_service"]
+    try:
+        plan_time_command_service.delete(time_id)
+        flash('Horario eliminado.', 'success')
+    except Exception as e:
+        flash(f'Error eliminando horario: {e}', 'danger')
+    return redirect(url_for('rental_module_api.planes_add_times', plan_id=plan_id))

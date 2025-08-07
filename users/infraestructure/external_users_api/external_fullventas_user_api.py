@@ -1,0 +1,122 @@
+import json
+import logging
+import requests
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+    datefmt="%H:%M:%S"
+)
+log = logging.getLogger("fullventas-api")
+
+BASE_URL = "https://cascadagym.fulventas.com/public/json"
+
+def register_fullventas_user(
+    type_, first_name, username, email, password, dni, mobile, verify=False
+):
+    url = f"{BASE_URL}/register_cliente.php"
+    payload = {
+        "type": type_,
+        "first_name": first_name,
+        "username": username,
+        "email": email,
+        "password": password,
+        "dni": dni,
+        "mobile": mobile
+    }
+    log.info("POST  %s  » %s", url, json.dumps(payload))
+    try:
+        resp = requests.post(url, json=payload, timeout=15, verify=verify)
+    except requests.RequestException as err:
+        log.error("✖  Error de red: %s", err)
+        raise
+
+    log.info("← %s %s", resp.status_code, resp.text[:150])
+    try:
+        return resp.status_code, resp.json()
+    except ValueError:
+        return resp.status_code, resp.text
+
+
+def find_fullventas_user_by_id(user_id: int):
+    """
+    GET /find_clienteById.php?user_id=<user_id>
+    Devuelve (status_code, json|texto)
+    """
+    url = f"{BASE_URL}/find_clienteById.php?user_id={user_id}"
+    log.info("GET  %s", url)
+    try:
+        resp = requests.get(url, timeout=10)
+    except requests.RequestException as err:
+        log.error("✖  Error de red: %s", err)
+        raise
+
+    log.info("← %s %s", resp.status_code, resp.text[:150])
+    try:
+        return resp.status_code, resp.json()
+    except ValueError:
+        return resp.status_code, resp.text
+
+
+def update_fullventas_tienda(
+    user_id: int,
+    business_name: str,
+    district: str,
+    gallery: str,
+    razon_social: str,
+    ruc: str,
+    useraddress: str,
+    cod_distrito: str
+):
+    """
+    POST /update_user_tienda.php
+    Devuelve (status_code, json|texto)
+    """
+    url = f"{BASE_URL}/update_user_tienda.php"
+    payload = {
+        "user_id": user_id,
+        "business_name": business_name,
+        "district": district,
+        "gallery": gallery,
+        "razon_social": razon_social,
+        "ruc": ruc,
+        "useraddress": useraddress,
+        "cod_distrito": cod_distrito
+    }
+    log.info("POST  %s  » %s", url, json.dumps(payload))
+    try:
+        resp = requests.post(url, json=payload, timeout=15)
+    except requests.RequestException as err:
+        log.error("✖  Error de red: %s", err)
+        raise
+
+    log.info("← %s %s", resp.status_code, resp.text[:150])
+    try:
+        return resp.status_code, resp.json()
+    except ValueError:
+        return resp.status_code, resp.text
+
+
+def login_fullventas_user(username: str, password: str):
+    """
+    POST /simulator_login.php
+    Devuelve (status_code, json|texto)
+    """
+    url = f"{BASE_URL}/simulator_login.php"
+    payload = {
+        "username": username,
+        "password": password
+    }
+    log.info("POST  %s  » %s", url, json.dumps(payload))
+    try:
+        resp = requests.post(url, json=payload, timeout=10)
+    except requests.RequestException as err:
+        log.error("✖  Error de red: %s", err)
+        raise
+
+    log.info("← %s %s", resp.status_code, resp.text[:150])
+    try:
+        return resp.status_code, resp.json()
+    except ValueError:
+        return resp.status_code, resp.text
+

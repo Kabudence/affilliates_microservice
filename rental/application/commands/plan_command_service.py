@@ -10,8 +10,8 @@ class PlanCommandService:
         self.plan_module_repo = plan_module_repo
         self.plan_time_repo = plan_time_repo
 
-    def create(self, name: str, description: str, app_id: int, plan_type: PlanType, ids_modules: list[int], times: list[dict]) -> Plan:
-        if not name or not description or app_id is None or plan_type is None or not times:
+    def create(self, name: str, description: str, app_id: int, plan_type: PlanType, ids_modules: list[int]) -> Plan:
+        if not name or not description or app_id is None or plan_type is None:
             raise ValueError("All fields are required (except modules).")
         plan = Plan(
             name=name,
@@ -22,13 +22,7 @@ class PlanCommandService:
         plan = self.plan_repo.create(plan)
         for module_id in ids_modules:
             self.plan_module_repo.add_module_to_plan(plan.id, module_id)
-        for t in times:
-            plan_time = PlanTime(
-                plan_id=plan.id,
-                duration=t["duration"],
-                price=t["price"]
-            )
-            self.plan_time_repo.create(plan_time)
+
         return plan
 
     def update(self, plan_id: int, name: str, description: str, app_id: int, plan_type: PlanType, ids_modules: list[int] = None, times: list[dict] = None) -> Plan:

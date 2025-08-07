@@ -20,6 +20,4 @@ class PlanTimeCommandService:
     def delete(self, plan_time_id: int) -> bool:
         return self.plan_time_repo.delete(plan_time_id)
 
-    def delete_by_plan_id(self, plan_id: int) -> int:
-        """Elimina todos los tiempos de un plan, retorna la cantidad eliminada."""
-        return self.plan_time_repo.delete_by_plan_id(plan_id)
+

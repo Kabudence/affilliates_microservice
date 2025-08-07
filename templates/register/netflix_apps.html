@@ -7,138 +7,377 @@
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
-        html, body {
-            height: 100%;
-            min-height: 100vh;
-            background: #181818 !important;
-            color: #fff;
+        html, body{height:100%;min-height:100vh;background:#181818!important;color:#fff;}
+        body{display:flex;flex-direction:column;min-height:100vh;}
+        .center-app-section{
+            flex:1 0 auto;display:flex;flex-direction:column;
+            align-items:center;justify-content:center;min-height:500px;
         }
-        body {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+        .app-feature-box{
+            background:#232323;border-radius:1.3rem;
+            box-shadow:0 4px 30px rgba(0,0,0,.20);
+            padding:38px 34px 32px;max-width:410px;width:98%;text-align:center;
         }
-        .center-app-section {
-            flex: 1 0 auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 500px;
+        .app-feature-box h1{font-size:2.2rem;font-weight:700;letter-spacing:1px;margin-bottom:18px;}
+        .app-feature-box p{font-size:1.13rem;margin-bottom:35px;color:#e1e1e1;}
+        .btn-app{
+            display:inline-block;background:#e50914;border:none;color:#fff;
+            font-size:1.05rem;border-radius:8px;padding:13px 0;width:100%;margin-top:12px;
+            font-weight:600;transition:background .18s;
         }
-        .app-feature-box {
+        .btn-app:active,.btn-app:focus{background:#b0060f!important;}
+        .footer{flex-shrink:0;width:100%;background:#161616;color:#fff;
+                border-top:2px solid #242424;margin-top:auto;}
+
+        #plans-panel {
             background: #232323;
-            border-radius: 1.3rem;
-            box-shadow: 0 4px 30px rgba(0,0,0,.20);
-            padding: 38px 34px 32px 34px;
-            max-width: 410px;
-            width: 98%;
-            margin: 0 auto;
+            border-radius: 1.4rem;
+            box-shadow: 0 6px 38px #111c;
+            padding: 40px 22px 32px 22px;
+            margin-top: 30px;
             text-align: center;
         }
-        .app-feature-box h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-            margin-bottom: 18px;
+        .plans-cards-row {
+            display: flex; gap: 25px; justify-content: center; margin-bottom: 38px; flex-wrap: wrap;
+        }
+        .plan-card {
+            cursor:pointer; border:2px solid transparent;
+            background: #282828; color:#fff; border-radius: 13px;
+            padding: 32px 36px 28px 36px; width: 185px; min-height: 120px;
+            font-size:1.25rem; font-weight:600; box-shadow:0 2px 8px #2229;
+            transition:transform .22s, border-color .22s, box-shadow .16s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .plan-card.active, .plan-card:hover {
+            border-color: #e50914; background:#e50914; color:#fff; transform: scale(1.08);
+            box-shadow:0 8px 28px #e5091422;
+        }
+        @media(max-width:900px){
+            .plan-card {width:135px;padding:20px 12px;font-size:.97rem;}
+        }
+        @media(max-width:600px){
+            .plans-cards-row {gap:11px;}
+            .plan-card{min-width:90px;width:98px;padding:10px 4px;}
+        }
+        .cmp-table {
+    background: #232833;
+    border-radius: 20px;
+    overflow: hidden;
+    margin: 0 auto 30px auto;
+    box-shadow: 0 6px 32px #0005;
+    font-size: 1.12rem;
+    min-width: 610px;
+    border: 1.5px solid #303848;
+}
+.cmp-table th, .cmp-table td {
+    text-align: center;
+    vertical-align: middle;
+    border: none;
+    padding: 18px 11px;
+    font-size: 1.06rem;
+}
+.cmp-table th {
+    background: #24292f;
+    color: #f3f3f3;
+    font-size: 1.18rem;
+    font-weight: 800;
+    border-bottom: 2px solid #2a2f35;
+    letter-spacing: .5px;
+}
+.cmp-table tr:not(:last-child) td {
+    border-bottom: 1px solid #25282e;
+}
+.cmp-table td:first-child, .cmp-table th:first-child {
+    text-align: left;
+    color: #fff;
+    font-weight: 700;
+    background: linear-gradient(90deg, #242a33 85%, #282c36 100%);
+    border-right: 1.5px solid #2c323b;
+    min-width: 180px;
+    font-size: 1.08rem;
+}
+.cmp-table .check {
+    color: #25e574;
+    background: #153e24;
+    border-radius: 5px;
+    padding: 2px 10px;
+    font-size: 1.3rem;
+    font-weight: 900;
+    border: 1.5px solid #2bb57350;
+    display: inline-block;
+}
+.cmp-table .cross {
+    color: #ff3d3d;
+    background: #421515;
+    border-radius: 5px;
+    padding: 2px 10px;
+    font-size: 1.3rem;
+    font-weight: 900;
+    border: 1.5px solid #c0444450;
+    display: inline-block;
+}
+
+
+
+
+
+
+        .table-responsive {overflow-x:auto;}
+        #cont-btn {margin: 0 auto; max-width:260px;display:block;}
+        .btn-close-x {background:#676e79;color:#fff;border-radius:6px;border:none;padding:7px 18px; font-size:1.05rem;margin-top:12px;}
+        .btn-close-x:hover {background:#e50914;color:#fff;}
+        @media(max-width: 720px){
+            .cmp-table{min-width:380px;font-size:.93rem;}
+            .cmp-table th, .cmp-table td{padding:8px 6px;}
+        }
+        /* === MODAL PROMO ESTILO NETFLIX === */
+        #promo-modal-backdrop {
+            position: fixed; top:0; left:0; width:100vw; height:100vh; z-index:1050;
+            background: rgba(24,24,24,0.85); display:none; justify-content:center; align-items:center;
+        }
+        #promo-modal {
+            background: #191919;
+            border-radius: 1.2rem;
+            padding: 38px 28px 24px 28px;
+            max-width: 440px;
+            width: 96vw;
+            box-shadow: 0 8px 44px #000a;
             color: #fff;
+            text-align: center;
+            position: relative;
+            border:2px solid #e50914;
         }
-        .app-feature-box p {
-            font-size: 1.13rem;
-            margin-bottom: 35px;
-            color: #e1e1e1;
+        #promo-modal h4 { margin-bottom:22px; color: #fff; font-weight:900;}
+        .promo-option-row {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #222227; border-radius: 10px; padding: 13px 17px; margin-bottom: 15px;
+            border: 2px solid transparent; transition: border-color .14s;
+            box-shadow: 0 2px 13px #0003;
         }
-        .btn-app {
-            display: inline-block;
-            background: #e50914;
-            border: none;
-            color: #fff;
-            font-size: 1.05rem;
-            border-radius: 8px;
-            padding: 13px 0;
-            width: 100%;
-            margin-top: 12px;
-            font-weight: 600;
-            transition: background .18s;
+        .promo-option-row.selected { border-color: #e50914; background: #242028; }
+        .promo-duration { font-weight:700; font-size:1.18rem; color: #fff;}
+        .promo-price { font-size:1.10rem; color:#e1e1e1;}
+        .promo-save-label {
+            color: #fff; background: #e50914; border-radius:7px;
+            font-size:.97rem; font-weight:700; margin-left:8px; padding:2px 12px 2px 12px;
+            box-shadow: 0 1px 8px #e5091410;
         }
-        .btn-app:active, .btn-app:focus {
-            background: #b0060f !important;
+        .promo-btn {
+            background:#e50914;color:#fff;border:none;font-weight:600;
+            border-radius:7px;padding:10px 0;font-size:1.13rem;margin-top:22px;width:98%;
+            transition: background .13s;
+            box-shadow:0 2px 13px #e5091420;
         }
-        .footer {
-            flex-shrink: 0;
-            width: 100%;
-            background: #161616;
-            color: #fff;
-            border-top: 2px solid #242424;
-            margin-top: auto;
+        .promo-btn:hover { background: #b0060f; }
+        .btn-modal-close {
+            position: absolute; top: 11px; right: 13px; background: none; border: none; color: #bbb;
+            font-size: 1.5rem; font-weight: bold; transition: color .15s;
         }
-        @media (max-width: 550px) {
-            .app-feature-box {
-                padding: 24px 7vw 24px 7vw;
-            }
-            .app-feature-box h1 { font-size: 1.34rem; }
-        }
+        .btn-modal-close:hover { color: #fff; }
     </style>
 </head>
 <body>
     <main class="center-app-section">
-        <div class="app-feature-box">
+        <div class="app-feature-box" id="app-box">
             <h1>{{ apps[0].name }}</h1>
             <p>{{ apps[0].description }}</p>
-            <a class="btn btn-app"
-               href="javascript:void(0);"
-               onclick="showPlans()">
-                Ver planes
-            </a>
-            <div id="plans-modal" style="display:none;margin-top:32px;"></div>
+            <button class="btn btn-app" onclick="showPlans()">Ver planes</button>
+        </div>
+        <div id="plans-panel" style="display:none;max-width:1200px;width:98%;margin:0 auto;"></div>
+        <div id="promo-modal-backdrop" onclick="closePromoModal(event)">
+            <div id="promo-modal" onclick="event.stopPropagation()"></div>
         </div>
     </main>
     <footer class="footer mt-auto">
         {% include "shared/footer.html" %}
     </footer>
-    <script>
-    // Mostrar tabla de planes como modal muy simple en la misma caja
-    function showPlans() {
-        var box = document.getElementById('plans-modal');
-        var plans = {{ apps[0].plans|tojson }};
-        let html = `
-        <div style="background:#232323;border-radius:1rem;padding:18px 8px 8px;box-shadow:0 2px 18px #1117;">
-            <button class="btn-close btn-close-white float-end" onclick="closePlans()" aria-label="Cerrar"></button>
-            <h4 class="mb-3" style="color:#fff;">Planes disponibles</h4>
-            <div class="table-responsive">
-                <table class="table table-dark table-bordered table-hover mb-1" style="border-radius: 0.7rem;overflow:hidden;">
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Precio</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
-        plans.forEach(function(p){
-            html += `
-            <tr>
-                <td>${p.name}</td>
-                <td>${p.price ? 'S/ ' + parseFloat(p.price).toFixed(2) : '-'}</td>
-                <td>
-                    <a class="btn btn-danger btn-sm"
-                       href="/register/user?plan_id=${p.id}">
-                        Registrarse
-                    </a>
-                </td>
-            </tr>`;
-        });
-        html += `
-                    </tbody>
-                </table>
+<script>
+const APP   = {{ apps[0] | tojson }};
+let planTimesById = {};
+
+function showPlans(){
+    const panel= document.getElementById('plans-panel');
+    if(panel.style.display==='block') return;
+    let cardsHtml=`<div class="plans-cards-row mb-4">`;
+    APP.plans.forEach(p=>{
+        cardsHtml+=`<div class="plan-card" id="card-${p.id}" onclick="selectPlan(${p.id})">${p.name}</div>`;
+    });
+    cardsHtml+='</div>';
+
+const allMods = [];
+APP.plans.forEach(p => {
+    p.modules.forEach(m => {
+        // Solo agrega el módulo si no existe uno con el mismo nombre (o usa el id si tienes)
+        if (!allMods.some(mm => mm.name === m.name)) allMods.push(m);
+    });
+});
+
+
+
+    let table=`<div class="table-responsive"><table class="table cmp-table"><thead><tr><th></th>`;
+    APP.plans.forEach(p=>{table+=`<th>${p.name}</th>`});
+    table+=`</tr></thead><tbody>`;
+
+    table+=`<tr><td>Precio desde</td>`;
+    APP.plans.forEach(p=>{
+        table+=`<td class="fw-semibold" style="font-size:1.12rem;">${p.price!==null?('S/ '+p.price.toFixed(2)):'-'}</td>`;
+    });
+    table+='</tr>';
+
+allMods.forEach(mod => {
+    table += `<tr>
+        <td>
+            ${mod.name}
+            ${mod.description ? `
+                <span class="badge bg-info text-dark"
+                      style="cursor:pointer;font-size:.84rem;margin-left:7px;position:relative;"
+                      onmouseover="showModInfo(event, \`${mod.description.replace(/`/g, '\\`')}\`)"
+                      onmouseout="hideModInfo()"
+                >ver info</span>
+            ` : ''}
+        </td>`;
+    APP.plans.forEach(p => {
+        const has = p.modules.some(mm => mm.name === mod.name);
+        table += `<td>${has ? '<span class="check">&check;</span>' : '<span class="cross">&times;</span>'}</td>`;
+    });
+    table += '</tr>';
+});
+
+
+
+    table+='</tbody></table></div>';
+    table+=`<div class="text-center my-3">
+              <a id="cont-btn" href="#" class="btn btn-app disabled" style="max-width:240px;">Continuar</a>
             </div>
+            <div class="text-center">
+              <button class="btn-close-x" onclick="closePlans()">Cerrar</button>
+            </div>`;
+
+    panel.innerHTML = cardsHtml + table;
+    panel.style.display='block';
+    document.getElementById('app-box').style.display='none';
+
+    fetchDuracionesPorPlan();
+}
+
+function closePlans(){
+    document.getElementById('plans-panel').style.display='none';
+    document.getElementById('app-box').style.display='block';
+}
+
+function fetchDuracionesPorPlan(){
+    planTimesById = {};
+    APP.plans.forEach(p => {
+        if (p.promos && p.promos.length) {
+            // ⇒ ya vienen con id, duración y precio
+            planTimesById[p.id] = p.promos;
+        } else {
+            // ⇒ crea precios “de escaparate”, pero marca id null
+            planTimesById[p.id] = [
+                { id: null, duration: 1,  price: p.price },
+                { id: null, duration: 3,  price: (p.price * 3 * 0.92).toFixed(2) },
+                { id: null, duration: 6,  price: (p.price * 6 * 0.85).toFixed(2) }
+            ];
+        }
+    });
+
+    // vuelve a enganchar el click
+    document
+      .querySelectorAll('.plan-card')
+      .forEach(card => card.onclick = () =>
+          showPromoModal(parseInt(card.id.replace('card-', ''))));
+}
+
+
+function showPromoModal(planId) {
+    const plan   = APP.plans.find(p => p.id === planId);
+    const promos = planTimesById[planId] || [];
+
+    // Cabecera del modal
+    let html = `
+      <button class="btn-modal-close" onclick="closePromoModal(event)" title="Cerrar">&times;</button>
+      <h4>Elige tu periodo de suscripción</h4>
+    `;
+
+    // Mínimo costo mensual para poder calcular % de ahorro
+    const minMensual = Math.min(...promos.map(pr => pr.price / pr.duration));
+
+    promos.forEach(pr => {
+        const mensual = pr.price / pr.duration;
+        const ahorro  = pr.duration > 1
+                        ? ((1 - mensual / minMensual) * 100).toFixed(1)
+                        : null;
+
+        html += `
+        <div class="promo-option-row"
+             onclick="selectPromo(this, ${planId}, ${pr.id})">
+            <span class="promo-duration">
+                ${pr.duration} ${pr.duration > 1 ? 'meses' : 'mes'}
+            </span>
+            <span class="promo-price">S/ ${pr.price}</span>
+            ${ahorro ? `<span class="promo-save-label">Ahorra ${ahorro}%</span>` : ''}
         </div>`;
-        box.innerHTML = html;
-        box.style.display = 'block';
+    });
+
+    // Botón continuar
+    html += `
+      <button class="promo-btn" id="promo-btn-confirm"
+              style="width:95%;" disabled>Continuar</button>
+    `;
+
+    document.getElementById('promo-modal').innerHTML  = html;
+    document.getElementById('promo-modal-backdrop').style.display = 'flex';
+    window._promoSelected = null;
+}
+
+
+function closePromoModal(ev){
+    if(!ev || ev.target.id==='promo-modal-backdrop' || ev.target.classList.contains('btn-modal-close')){
+        document.getElementById('promo-modal-backdrop').style.display='none';
+        window._promoSelected=null;
     }
-    function closePlans() {
-        document.getElementById('plans-modal').style.display = 'none';
+}
+function selectPromo(row, planId, planTimeId) {
+    document.querySelectorAll('.promo-option-row').forEach(e=>e.classList.remove('selected'));
+    row.classList.add('selected');
+    window._promoSelected = { planId, planTimeId };
+
+    const btn = document.getElementById('promo-btn-confirm');
+    btn.disabled = false;
+    btn.onclick = () => {
+        let url = `/register/user?plan_time_id=${planTimeId}`;
+        if(APP.user_id) url += `&user_owner_id=${APP.user_id}`;
+        if(APP.excedent_amount) url += `&excedent_amount=${APP.excedent_amount}`;
+        url += `&app_id=${APP.id}`;
+        window.location.href = url;
     }
-    </script>
+}
+// Tooltip dinámico para info de módulo
+let modInfoTooltip = null;
+function showModInfo(e, description) {
+    hideModInfo();
+    modInfoTooltip = document.createElement('div');
+    modInfoTooltip.innerText = description;
+    modInfoTooltip.style.position = 'fixed';
+    modInfoTooltip.style.left = (e.clientX + 14) + 'px';
+    modInfoTooltip.style.top = (e.clientY - 16) + 'px';
+    modInfoTooltip.style.background = '#222232';
+    modInfoTooltip.style.color = '#fff';
+    modInfoTooltip.style.padding = '10px 15px';
+    modInfoTooltip.style.borderRadius = '8px';
+    modInfoTooltip.style.boxShadow = '0 2px 14px #000b';
+    modInfoTooltip.style.zIndex = '2000';
+    modInfoTooltip.style.fontSize = '0.98rem';
+    modInfoTooltip.style.maxWidth = '260px';
+    document.body.appendChild(modInfoTooltip);
+}
+function hideModInfo() {
+    if(modInfoTooltip) {
+        modInfoTooltip.remove();
+        modInfoTooltip = null;
+    }
+}
+
+</script>
 </body>
 </html>

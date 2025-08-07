@@ -1,0 +1,81 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Planes{% endblock %}
+
+{% block content %}
+<h2 style="color:#e50914;font-weight:900;">Planes de la aplicación</h2>
+<a href="{{ url_for('rental_module_api.planes_create') }}" class="btn btn-app mb-3">Crear nuevo plan</a>
+
+{% with msgs = get_flashed_messages(with_categories=true) %}
+  {% if msgs %}
+    {% for cat, msg in msgs %}
+      <div class="alert alert-{{ cat }} alert-dismissible fade show" role="alert">
+        {{ msg }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div class="table-responsive">
+<table class="table table-dark table-bordered table-hover align-middle">
+  <thead>
+    <tr>
+      <th>ID</th><th>Nombre</th><th>Tipo</th>
+      <th>Módulos</th><th>Meses - Precio</th><th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for plan in plans %}
+    <tr>
+      <td>{{ plan.id }}</td>
+      <td>{{ plan.name }}</td>
+      <td>{{ plan.plan_type.value|replace('_',' ')|capitalize }}</td>
+
+      <!-- MÓDULOS -->
+      <td>
+        {% for m in modules_by_plan[plan.id] %}
+          <span class="badge bg-info">{{ m.name }}</span>
+        {% else %}
+          <span class="text-muted">—</span>
+        {% endfor %}
+      </td>
+
+      <!-- HORARIOS -->
+      <td>
+        {% for t in plan_times_by_plan[plan.id] %}
+          <div class="d-flex justify-content-between">
+            <span>{{ t.duration }} m – S/ {{ '%.2f'|format(t.price) }}</span>
+            <form action="{{ url_for('rental_module_api.plan_time_delete',
+                                     plan_id=plan.id, time_id=t.id) }}"
+                  method="POST" onsubmit="return confirm('¿Eliminar horario?');">
+              <button class="btn btn-sm btn-danger ms-2">&times;</button>
+            </form>
+          </div>
+        {% else %}
+          <span class="text-muted">No hay horarios.</span>
+        {% endfor %}
+      </td>
+
+      <!-- ACCIONES -->
+      <td>
+        <a class="btn btn-sm btn-primary mb-1"
+           href="{{ url_for('rental_module_api.planes_add_times', plan_id=plan.id) }}">
+           Detalles
+        </a>
+        <a class="btn btn-sm btn-warning mb-1"
+           href="{{ url_for('rental_module_api.planes_edit', plan_id=plan.id) }}">
+           Editar
+        </a>
+        <form action="{{ url_for('rental_module_api.planes_delete', plan_id=plan.id) }}"
+              method="POST" style="display:inline"
+              onsubmit="return confirm('¿Eliminar plan?');">
+          <button class="btn btn-sm btn-danger">Eliminar</button>
+        </form>
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="6" class="text-center text-muted">No hay planes.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

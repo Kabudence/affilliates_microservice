@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Registro de usuario – EmprendeX</title>
+    <title>Registro de usuario </title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet"
@@ -53,7 +53,7 @@
     <input type="hidden" name="role" value="{{ default_role }}">
 
     <!-- campos ocultos --------------------------------------- -->
-    <input type="hidden" name="plan_id" value="{{ plan_id if plan_id else '' }}">
+<input type="hidden" name="plan_time_id" value="{{ plan_time_id if plan_time_id else '' }}">
     {% if user_owner_id %}
       <input type="hidden" name="user_owner_id" value="{{ user_owner_id }}">
     {% endif %}

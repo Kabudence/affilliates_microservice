@@ -36,6 +36,7 @@ def init_db() -> None:
     from rental.infraestructure.model.goal_model import GoalModel
     from users.infraestructure.models.user_model import UserModel
     from rental.infraestructure.model.user_goal_model import UserGoalModel
+    from rental.infraestructure.model.plan_time_model import PlanTimeModel
 
     # Socio-económico
     from socioeconomic_distribution.infraestructure.model.inscription_level_model import InscriptionLevelModel
@@ -55,6 +56,7 @@ def init_db() -> None:
             PlanModel,
             PlanModuleModel,
             GoalModel,
+            PlanTimeModel,
             UserModel,
             UserGoalModel,
 
