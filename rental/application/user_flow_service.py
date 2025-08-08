@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from flask import current_app
 
 from rental.domain.entities.commissions import CommissionsTypes
+from rental.domain.entities.plan import PlanType, _to_plan_type
 from rental.domain.entities.subscription import SubscriptionStatus
 from users.domain.model.entities.user import User, UserType
 
@@ -16,12 +17,14 @@ class UserFlowService:
         user_command_service,
         user_query_service,
         subscription_command_service,
+        subscription_query_service,
         commission_command_service,
         plan_query_service,
         goal_query_service
     ):
         self.user_goal_command_service = user_goal_command_service
         self.subscription_command_service = subscription_command_service
+        self.subscription_query_service = subscription_query_service
         self.commission_command_service = commission_command_service
         self.plan_query_service = plan_query_service
         self.user_command_service= user_command_service
@@ -33,9 +36,10 @@ class UserFlowService:
         try:
             return ZoneInfo(key)
         except ZoneInfoNotFoundError:
-            return timezone(timedelta(hours=-5))  # UTC-5 Lima
+            return timezone(timedelta(hours=-5))
 
-    def user_flow(self, user_id: int, plan_id: Optional[int] = None,plan_time_id: Optional[int] = None):
+
+    def user_register_flow(self, user_id: int, plan_id: Optional[int] = None,plan_time_id: Optional[int] = None):
         user = self.user_query_service.get_by_id(user_id)
         if not user:
             raise ValueError("User not found")
@@ -47,8 +51,29 @@ class UserFlowService:
                 raise ValueError("plan_id must be provided for BUYER users.")
             self.buyer_user_flow(user_id, plan,plan_time_id)
 
-
     def seller_user_flow(self, user_id: int):
+        user = self.user_query_service.get_by_id(user_id)
+        if not user:
+            raise ValueError("User not found")
+
+        owner_user = self.user_query_service.get_by_id(user.user_owner_id) if user.user_owner_id else None
+        if not owner_user:
+            return None  # o lo que corresponda en tu flujo
+
+        subscription = self.subscription_query_service.get_subscription_by_user_id(owner_user.id)
+        if not subscription:
+            return None
+
+        plan = self.plan_query_service.get_by_id(subscription.plan_id)
+        if not plan:
+            return None
+        goals=None
+        plan_type = _to_plan_type(plan.plan_type)
+        if plan_type == PlanType.FRANQUICIA_EXCLUSIVA:
+              goals = self.goal_query_service.list_by_owner_id(owner_user.id)
+
+
+
         goals = self.goal_query_service.list_all()
         if not goals:
             raise ValueError("No hay goals cargados en la BD")

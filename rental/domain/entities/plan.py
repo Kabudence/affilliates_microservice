@@ -1,5 +1,7 @@
 
 from enum import Enum
+from typing import Optional
+
 
 class PlanType(Enum):
     ALQUILER_SIMPLE = "alquiler_simple"
@@ -48,3 +50,15 @@ class Plan:
             "plan_type": self.plan_type.value if isinstance(self.plan_type, PlanType) else self.plan_type,
             "app_id": self.app_id
         }
+
+
+def _to_plan_type(value) -> Optional[PlanType]:
+
+        if isinstance(value, PlanType):
+            return value
+        if value is None:
+            return None
+        try:
+            return PlanType(value)
+        except ValueError:
+            return None
