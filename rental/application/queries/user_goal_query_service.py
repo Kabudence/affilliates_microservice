@@ -14,9 +14,7 @@ class UserGoalQueryService:
         return self.user_goal_repo.get_all()
 
     def list_by_user(self, user_id: int) -> List[UserGoal]:
-        # Este método debes agregarlo a tu UserGoalRepository
         return self.user_goal_repo.get_by_user(user_id)
 
     def list_by_goal(self, goal_id: int) -> List[UserGoal]:
-        # Este método también lo agregas al repo si lo necesitas
         return self.user_goal_repo.get_by_goal(goal_id)
