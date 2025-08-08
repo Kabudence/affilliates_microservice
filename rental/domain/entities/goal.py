@@ -5,6 +5,7 @@ class Goal:
                   number_of_clients: int = None,
                   month:int = None,
                   percentage_to_bonus: float = None,
+                  owner_id: int = None
                 ):
         self.id = id
         if number_of_clients is None:
@@ -16,11 +17,15 @@ class Goal:
         if percentage_to_bonus is None:
             raise ValueError("percentage_to_bonus cannot be None")
         self.percentage_to_bonus = percentage_to_bonus
+        if owner_id is None:
+            raise ValueError("owner_id cannot be None")
+        self.owner_id = owner_id
 
     def to_dict(self):
         return {
             "id": self.id,
             "number_of_clients": self.number_of_clients,
             "month": self.month,
-            "percentage_to_bonus": self.percentage_to_bonus
+            "percentage_to_bonus": self.percentage_to_bonus,
+            "owner_id": self.owner_id
         }

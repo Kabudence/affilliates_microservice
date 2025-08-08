@@ -49,18 +49,27 @@
 
     <aside class="sidebar">
         <div>
-            <div class="sidebar-title">EmprendeX</div>
-{#            {% if user_data.role == 'dueno_tienda' %}#}
+<div class="sidebar-title">
+    {% if user_data.role is defined %}
+        Emprende<span style="color:#fff;">X</span>
+    {% elif user_data.type is defined %}
+        FullVentas<span style="color:#fff;">Gym</span>
+    {% else %}
+        <!-- fallback por si no hubiera ninguno -->
+        Sistema
+    {% endif %}
+</div>
+{% if user_data.role == 'dueno_tienda' or user_data.type == '2' %}
     <a href="{{ url_for('register_module_api.generar_links') }}" class="sidebar-link">Generación de links</a>
 <a href="{{ url_for('rental_module_api.comisiones_usuario') }}" class="sidebar-link">Comisiones actuales</a>
-{#            {% elif user_data.role == 'administrador' %}#}
+            {% elif user_data.role == 'administrador' %}
                 <a href="/modulos" class="sidebar-link">Módulos</a>
             <a href="{{ url_for('rental_module_api.planes_index') }}" class="sidebar-link">Planes</a>
 <a href="{{ url_for('rental_module_api.metas_index') }}" class="sidebar-link">Metas</a>
 <a href="{{ url_for('rental_module_api.aplicaciones_index') }}" class="sidebar-link">Aplicaciones</a>
 <a href="{{ url_for('rental_module_api.inscription_levels_index') }}" class="sidebar-link">Niveles Inscripción</a>
 <a href="{{ url_for('rental_module_api.royalties_index') }}" class="sidebar-link">Royalties</a>
-{#            {% endif %}#}
+            {% endif %}
         </div>
         <div class="sidebar-bottom">
             <div class="sidebar-user">

@@ -45,18 +45,18 @@ class UserFlowService:
             plan = plan_id
             if plan is None:
                 raise ValueError("plan_id must be provided for BUYER users.")
-            self.buyer_user_flow(user_id, plan)
+            self.buyer_user_flow(user_id, plan,plan_time_id)
 
     def seller_user_flow(self, user_id: int):
-        # ── obtén todos los goals registrados
         goals = self.goal_query_service.list_all()
         if not goals:
             raise ValueError("No hay goals cargados en la BD")
+        print("Goals cargados en la BD")
+        for goal in goals:
+            print(f"Goal ID: {goal.id}, Number of Clients: {goal.number_of_clients}")
 
-        # ── elige el de menor número de clientes
         goal = min(goals, key=lambda g: g.number_of_clients)
 
-        # ── crea el UserGoal apuntando a ese id
         return self.user_goal_command_service.create(user_id=user_id, goal_id=goal.id)
 
 
@@ -99,7 +99,7 @@ class UserFlowService:
         # Crear comisión para el usuario (tipo DIRECT, monto = 20% del precio del plan)
         commission = self.commission_command_service.create(
             user_id=user.user_owner_id,
-            amount=plan.plan_time.price * 0.2,
+            amount=plan_time.price * 0.2,
             type=CommissionsTypes.DIRECT,
             subscription_id=subscription.id
         )

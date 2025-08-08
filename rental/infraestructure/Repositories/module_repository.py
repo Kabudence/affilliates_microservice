@@ -78,8 +78,6 @@ class ModuleRepository:
             for mod in query
         ]
 
-        print(f"[get_modules_by_plan_id] Módulos encontrados ({len(modules_list)}):")
-        for m in modules_list:
-            print(f"  - id: {m.id}, name: {m.name}, description: {m.description}")
+
 
         return modules_list

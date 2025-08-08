@@ -10,6 +10,8 @@ class PlanType(Enum):
     FRANQUICIA_INDIVIDUAL = "franquicia_individual"
     FRANQUICIA_INDIVIDUAL_PRO = "franquicia_individual_pro"
     FRANQUICIA_EXCLUSIVA = "franquicia_exclusiva"
+
+
     SIMPLE_PRO_COM = "simple_pro_com"
     SIMPLE_PRO_GYM = "simple_pro_gym"
     INTERMEDIO_PRO_COM = "intermedio_pro_com"

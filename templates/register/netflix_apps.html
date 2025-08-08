@@ -49,7 +49,10 @@
             display: flex; align-items: center; justify-content: center;
         }
         .plan-card.active, .plan-card:hover {
-            border-color: #e50914; background:#e50914; color:#fff; transform: scale(1.08);
+            background: #a8242e !important;   /* ← Rojo oscuro */
+             color: #fff !important;
+            font-weight: 600;
+            transform: scale(1.08);
             box-shadow:0 8px 28px #e5091422;
         }
         @media(max-width:900px){
@@ -59,17 +62,19 @@
             .plans-cards-row {gap:11px;}
             .plan-card{min-width:90px;width:98px;padding:10px 4px;}
         }
-        .cmp-table {
-    background: #232833;
+.cmp-table {
+    background: #232323;
     border-radius: 20px;
     overflow: hidden;
     margin: 0 auto 30px auto;
-    box-shadow: 0 6px 32px #0005;
+    box-shadow: 0 6px 32px #0006;
     font-size: 1.12rem;
     min-width: 610px;
-    border: 1.5px solid #303848;
+    border: 1.5px solid #222;
 }
 .cmp-table th, .cmp-table td {
+    background: #8d8686  ;   /* ← Plomo medio claro */
+
     text-align: center;
     vertical-align: middle;
     border: none;
@@ -77,25 +82,26 @@
     font-size: 1.06rem;
 }
 .cmp-table th {
-    background: #24292f;
-    color: #f3f3f3;
+    background: #181818;
+    color: #fff;
     font-size: 1.18rem;
     font-weight: 800;
-    border-bottom: 2px solid #2a2f35;
+    border-bottom: 2px solid #242424;
     letter-spacing: .5px;
 }
 .cmp-table tr:not(:last-child) td {
-    border-bottom: 1px solid #25282e;
+    border-bottom: 1px solid #242424;
 }
 .cmp-table td:first-child, .cmp-table th:first-child {
     text-align: left;
     color: #fff;
     font-weight: 700;
-    background: linear-gradient(90deg, #242a33 85%, #282c36 100%);
-    border-right: 1.5px solid #2c323b;
+    background: linear-gradient(90deg, #232323 85%, #181818 100%);
+    border-right: 1.5px solid #242424;
     min-width: 180px;
     font-size: 1.08rem;
 }
+
 .cmp-table .check {
     color: #25e574;
     background: #153e24;

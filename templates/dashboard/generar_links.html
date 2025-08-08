@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Generación de Links | EmprendeX</title>
+    <title>Generación de Links</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet"
@@ -144,7 +144,16 @@
 <div class="layout">
 <aside class="sidebar">
     <div>
-        <div class="sidebar-title">Emprende<span style="color:#fff;">X</span></div>
+<div class="sidebar-title">
+    {% if user_data.role is defined %}
+        Emprende<span style="color:#fff;">X</span>
+    {% elif user_data.type is defined %}
+        FullVentas<span style="color:#fff;">Gym</span>
+    {% else %}
+        <!-- fallback por si no hubiera ninguno -->
+        Sistema
+    {% endif %}
+</div>
         {% if user_data.role == 'dueno_tienda' %}
             <a href="{{ url_for('register_module_api.generar_links') }}" class="sidebar-link{% if active_page == 'links' %} active{% endif %}">
                 Generación de links

@@ -2,7 +2,8 @@ from flask import Blueprint, render_template, redirect, url_for, request, curren
 
 from users.domain.model.entities.user import role_to_user_type
 from users.infraestructure.external_users_api.external_emprende_user_api import create_emprede_user, login_emprende_user
-from users.infraestructure.external_users_api.external_fullventas_user_api import register_fullventas_user
+from users.infraestructure.external_users_api.external_fullventas_user_api import register_fullventas_user, \
+    login_fullventas_user
 
 register_module_api = Blueprint('register_module_api', __name__)
 
@@ -62,59 +63,66 @@ def show_applications():
 
 @register_module_api.route('/register/user', methods=['GET', 'POST'])
 def register_user():
-    plan_query_service = current_app.config["plan_query_service"]
-    plan_time_query_service = current_app.config["plan_time_query_service"]
-    plan_time_id = request.args.get('plan_time_id')
-    plan_time = plan_time_query_service.get_by_id(int(plan_time_id)) if plan_time_id else None
-    plan_id_raw = plan_time.plan_id if plan_time else None
+    # ── 1) plan_time_id (puede venir por GET o POST, o no venir) ────────────
+    raw_plan_time_id = request.form.get('plan_time_id') or request.args.get('plan_time_id')
+    plan_time_id = raw_plan_time_id.strip() if raw_plan_time_id else None          # '' → None
+
+    plan_qs      = current_app.config["plan_query_service"]
+    plan_time_qs = current_app.config["plan_time_query_service"]
+
+    if plan_time_id and plan_time_id.isdigit():
+        plan_time = plan_time_qs.get_by_id(int(plan_time_id))
+        plan_id_raw = plan_time.plan_id if plan_time else None
+    else:
+        plan_time   = None        # flujo AFILIATE o link mal formado
+        plan_id_raw = None
+
+    # ── 2) POST: procesar registro ──────────────────────────────────────────
     if request.method == 'POST':
-        # ---------- 1. Datos del formulario ----------
         nombre   = request.form['nombre']
         dni      = request.form['dni']
         email    = request.form['email']
         celular  = request.form['celular']
         username = request.form['username']
         password = request.form['password']
+        role     = request.form['role']              # BUYER | AFILIATE
         id_tipo_usuario = 2
-        role     = request.form['role']
+        user_owner_id   = request.form.get('user_owner_id')
 
+        # --- validar / obtener plan & app_id según rol ---------------------
+        if role == "BUYER":
+            if not plan_id_raw:
+                flash("Debes seleccionar un plan para registrarte como comprador.", "danger")
+                return redirect(url_for('register_module_api.show_applications'))
+            plan_id  = int(plan_id_raw)
+            plan_obj = plan_qs.get_by_id(plan_id)
+            if not plan_obj:
+                flash("El plan indicado no existe.", "danger")
+                return redirect(url_for('register_module_api.show_applications'))
+            app_id = plan_obj.app_id
+        else:  # AFILIATE
+            plan_id = None
+            # app_id primero del cuerpo y luego de la query
+            app_id = (request.form.get('app_id') or request.args.get('app_id', type=int))
+            try:
+                app_id = int(app_id)
+            except (TypeError, ValueError):
+                flash("ID de aplicación faltante o inválido.", "danger")
+                return redirect(url_for('register_module_api.show_applications'))
 
-        user_owner_id = request.form.get('user_owner_id')
-
-        # plan_id es obligatorio para BUYER; lo convertimos seguro
-        try:
-            plan_id = int(plan_id_raw)
-        except (TypeError, ValueError):
-            flash("Plan no seleccionado o inválido.", "danger")
-            return redirect(url_for('register_module_api.show_applications'))
-
-        # ② ─── obtener plan ► nos da app_id
-        plan_obj = plan_query_service.get_by_id(plan_id)
-        if not plan_obj:
-            flash("El plan indicado no existe.", "danger")
-            return redirect(url_for('register_module_api.show_applications'))
-
-        app_id = plan_obj.app_id   # lo usaremos al crear el usuario
-
-        current_app.logger.info(
-            "[REG] Form POST  » nombre=%s dni=%s email=%s username=%s role=%s plan_id=%s owner=%s",
-            nombre, dni, email, username, role, plan_id, user_owner_id
-        )
+        # --- 3) Crear cuenta externa --------------------------------------
         account_id = None
-        app_name=None
-        if app_id == 1:
+        if app_id == 1:  # EmprendeX
             status, data = create_emprede_user(
                 nombre, dni, email, celular, username,
                 password, id_tipo_usuario, role
             )
-            app_name = "Emprende"
-            current_app.logger.info("[REG] API externa ← %s  %s", status, data)
             if status != 201:
-                flash(f"Error API externa: {data.get('error', data)}", "danger")
+                flash(f"Error API EmprendeX: {data.get('error', data)}", "danger")
                 return redirect(request.url)
             account_id = data.get("id")
-        elif app_id == 2:
-            app_name = "Fullventas"
+
+        elif app_id == 2:  # Fullventas
             status, data = register_fullventas_user(
                 type_=2,
                 first_name=nombre,
@@ -124,7 +132,6 @@ def register_user():
                 dni=dni,
                 mobile=celular
             )
-            current_app.logger.info("[REG] API Fullventas ← %s  %s", status, data)
             if status != 200:
                 flash(f"Error API Fullventas: {data.get('message') or data.get('error') or data}", "danger")
                 return redirect(request.url)
@@ -134,102 +141,126 @@ def register_user():
             flash("No se pudo obtener el ID del usuario externo.", "danger")
             return redirect(request.url)
 
-        # ---------- 3. Crea usuario interno ----------
+        # --- 4) Crear usuario interno -------------------------------------
         user_service = current_app.config["user_command_service"]
-        user_type = role_to_user_type(role)
-
+        user_type    = role_to_user_type(role)
         try:
             user_obj = user_service.create(
-                account_id=account_id,
-                app_id=app_id,
-                user_type=user_type,
-                user_owner_id=int(user_owner_id) if user_owner_id else None
+                account_id   = account_id,
+                app_id       = app_id,
+                user_type    = user_type,
+                user_owner_id= int(user_owner_id) if user_owner_id else None
             )
-            current_app.logger.info("[REG] Usuario interno OK  id=%s", user_obj.id)
         except Exception as ex:
             current_app.logger.exception("[REG] Error creando usuario interno")
             flash("Error creando usuario interno: " + str(ex), "danger")
             return redirect(request.url)
 
+        # --- 5) Flujo post-registro sólo si hay plan -----------------------
+        if plan_time_id and plan_id:
+            user_flow_svc = current_app.config["user_flow_service"]
+            user_flow_svc.user_flow(user_obj.id, plan_id, int(plan_time_id))
+
         flash("¡Registro exitoso!", "success")
-
-        # ---------- 4. Lógica de flujo ----------
-        user_flow_service = current_app.config["user_flow_service"]
-        user_flow_service.user_flow(user_obj.id, plan_id,int(plan_time_id))
-
         return redirect(url_for('register_module_api.show_applications'))
 
-    # ---------- GET ----------
+    # ── 3) GET: mostrar formulario ─────────────────────────────────────────
     user_owner_id = request.args.get('user_owner_id')
-    plan_id = int(plan_id_raw)
+    app_id_arg    = request.args.get('app_id')
+    plan_id       = int(plan_id_raw) if plan_id_raw is not None else None
 
-    if plan_id:
-        default_role = "BUYER"
-        titulo = "Regístrate como Comprador"
-    else:
-        default_role = "AFILIATE"
-        titulo = "Regístrate como Vendedor"
-
-    current_app.logger.info("[REG] Render formulario  plan_id=%s owner=%s",
-                            plan_id, user_owner_id)
+    default_role = "BUYER" if plan_id else "AFILIATE"
+    titulo       = "Regístrate como Comprador" if plan_id else "Regístrate como Vendedor"
 
     return render_template(
         "register/registro_usuario.html",
         plan_time_id  = plan_time_id,
         user_owner_id = user_owner_id,
+        app_id        = app_id_arg,
         default_role  = default_role,
         titulo        = titulo
     )
 
 
+
+
 @register_module_api.route('/login', methods=['GET', 'POST'])
 def login():
     application_query_service = current_app.config["application_query_service"]
-    apps = application_query_service.list_all()  # Lista de ApplicationData
+    apps = application_query_service.list_all()           # para el <select>
 
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        app_id = request.form.get('app_id')
+        app_id   = request.form.get('app_id')             # string (desde <select>)
 
-        # Llamada al login externo
-        status, data, cookies = login_emprende_user(username, password)
-        if status == 200 and "user" in data:
-            datos_user = data["user"]
-            session['user_data'] = datos_user
-            session['app_id'] = app_id
+        # ---------- 1) Validar app_id ----------
+        try:
+            app_id_int = int(app_id)
+        except (TypeError, ValueError):
+            flash('ID de aplicación inválido.', 'danger')
+            return render_template('login/inicio_sesion.html', apps=apps)
 
-            user_query_service = current_app.config["user_query_service"]
-            try:
-                app_id_int = int(app_id)
-            except (TypeError, ValueError):
-                flash('ID de aplicación inválido.', 'danger')
-                return render_template('login/inicio_sesion.html', datos_user=datos_user, apps=apps, app_id=app_id)
+        # ---------- 2) Llamar API externa ----------
+        if app_id_int == 1:
+            status, data, _cookies = login_emprende_user(username, password)
+            success   = status == 200 and "user" in data
+            user_data = data.get("user") if success else None
 
-            # Buscar usuario (usando account_id y app_id)
-            user_obj = user_query_service.find_by_account_and_app(datos_user['id'], app_id_int)
-
-            if not user_obj:
-                flash('No existe usuario asociado a esta aplicación para tu cuenta.', 'danger')
-                # Limpia la sesión si quieres evitar acceso a otras rutas
-                session.pop('user_data', None)
-                session.pop('app_id', None)
-                return render_template(
-                    'login/inicio_sesion.html',
-                    apps=apps,
-                    app_id=app_id
-                )
-
-            # Si existe, continúa como normalmente (redirige o muestra dashboard)
-            # Por ejemplo, redirige a dashboard:
-            return redirect(url_for('register_module_api.dashboard_index'))
+        elif app_id_int == 2:
+            status, data = login_fullventas_user(username, password)
+            # La API de Fullventas devuelve {"user": {...}} (según tu registro) o algo distinto
+            success   = status == 200 and isinstance(data, dict)
+            # Ajusta el “path” al objeto usuario según tu API:
+            user_data = data.get("user") if "user" in data else data if success else None
 
         else:
+            flash('Aplicación no soportada.', 'danger')
+            return render_template('login/inicio_sesion.html', apps=apps, app_id=app_id)
+
+        # ---------- 3) Manejar respuesta ----------
+        if not success or not user_data:
             flash('Usuario o contraseña inválidos', 'danger')
             return render_template('login/inicio_sesion.html', apps=apps, app_id=app_id)
-    # GET normal
-    return render_template('login/inicio_sesion.html', apps=apps)
 
+        # ---------- 4) Guardar en sesión ----------
+        session['user_data'] = user_data
+        session['app_id']    = app_id                       # conserva string/int indiferente
+        # si tienes plan_time_id o plan_id ponlo aquí cuando corresponda:
+        session.pop('plan_time_id', None)
+        session.pop('plan_id', None)
+
+        # ---------- 5) Verificar que exista user interno ----------
+        user_query_service = current_app.config["user_query_service"]
+
+        # Lee el id correcto, según la app
+        if app_id_int == 1:
+            # API EmprendeX → usa 'id'
+            ext_user_id = user_data.get("id")
+        elif app_id_int == 2:
+            # API Fullventas → usa 'user_id'
+            ext_user_id = user_data.get("user_id")
+        else:
+            ext_user_id = None
+
+        if not ext_user_id:
+            flash('No se pudo identificar el usuario externo.', 'danger')
+            session.clear()
+            return render_template('login/inicio_sesion.html', apps=apps, app_id=app_id)
+
+        print("userdataid:", ext_user_id, "app_id_int:", app_id_int)
+        user_obj = user_query_service.find_by_account_and_app(int(ext_user_id), app_id_int)
+
+        if not user_obj:
+            flash('No existe usuario asociado a esta aplicación para tu cuenta.', 'danger')
+            session.clear()  # limpia todo
+            return render_template('login/inicio_sesion.html', apps=apps, app_id=app_id)
+
+        # ---------- 6) Éxito ----------
+        return redirect(url_for('register_module_api.dashboard_index'))
+
+    # ---------- GET ----------
+    return render_template('login/inicio_sesion.html', apps=apps)
 
 @register_module_api.route('/dashboard')
 def dashboard_index():
@@ -252,7 +283,7 @@ def generar_links():
     user_data = session.get('user_data')
     app_id = session.get('app_id')
     plan_id = session.get('plan_id')
-
+    print(user_data)
     current_app.logger.debug(f"Datos de sesión: user_data={user_data}, app_id={app_id}, plan_id={plan_id}")
 
     if not user_data or not app_id:
@@ -272,7 +303,17 @@ def generar_links():
     user_query_service = current_app.config["user_query_service"]
 
     # Log antes de llamar al servicio
-    user_obj = user_query_service.find_by_account_and_app(user_data['id'], app_id_int)
+    # --- seleccionar id correcto según la app ---
+    if app_id_int == 1:  # EmprendeX
+        ext_user_id = user_data.get('id')
+    else:  # Fullventas
+        ext_user_id = user_data.get('user_id')
+
+    if not ext_user_id:
+        flash("No se pudo determinar el usuario externo.", "danger")
+        return redirect(url_for('register_module_api.dashboard_index'))
+
+    user_obj = user_query_service.find_by_account_and_app(int(ext_user_id), app_id_int)
 
     return render_template(
         'dashboard/generar_links.html',
