@@ -2,8 +2,8 @@ from enum import Enum
 
 
 class ApplicationType(Enum):
-    EMPRENDEX = "emprendex"
-    FULLVENTASGYM = "fullventasgym"
+    NORMAL_APPLICATION = "normal_application"
+    ECOMMERCE_APPLICATION = "ecommerce_application"
 
 
 class ApplicationData:
@@ -11,7 +11,7 @@ class ApplicationData:
                  id: int = None,
                  name: str = "",
                  description: str = "",
-                 application_type: ApplicationType = ApplicationType,
+                 application_type: ApplicationType = ApplicationType.NORMAL_APPLICATION
                  ):
         self.id = id
         if name is None or name.strip() == "":

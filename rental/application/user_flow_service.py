@@ -47,6 +47,7 @@ class UserFlowService:
                 raise ValueError("plan_id must be provided for BUYER users.")
             self.buyer_user_flow(user_id, plan,plan_time_id)
 
+
     def seller_user_flow(self, user_id: int):
         goals = self.goal_query_service.list_all()
         if not goals:
@@ -58,6 +59,7 @@ class UserFlowService:
         goal = min(goals, key=lambda g: g.number_of_clients)
 
         return self.user_goal_command_service.create(user_id=user_id, goal_id=goal.id)
+
 
 
     def buyer_user_flow(self, user_id: int, plan_id: int,plan_time_id:int):
