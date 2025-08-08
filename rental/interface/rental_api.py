@@ -10,7 +10,7 @@ def metas_index():
     goal_query_service = current_app.config["goal_query_service"]
     goals = goal_query_service.list_all()
     user_data = session.get('user_data')
-    return render_template('rental/metas_index.html', goals=goals, user_data=user_data)
+    return render_template('rental/goals/metas_index.html', goals=goals, user_data=user_data)
 
 @rental_module_api.route('/metas/create', methods=['GET', 'POST'])
 def metas_create():
@@ -26,7 +26,7 @@ def metas_create():
             return redirect(url_for('rental_module_api.metas_index'))
         except Exception as e:
             flash('Error al crear la meta: ' + str(e), 'danger')
-    return render_template('rental/metas_create.html', user_data=user_data)
+    return render_template('rental/goals/metas_create.html', user_data=user_data)
 
 @rental_module_api.route('/metas/edit/<int:goal_id>', methods=['GET', 'POST'])
 def metas_edit(goal_id):
@@ -47,7 +47,7 @@ def metas_edit(goal_id):
             return redirect(url_for('rental_module_api.metas_index'))
         except Exception as e:
             flash('Error al actualizar la meta: ' + str(e), 'danger')
-    return render_template('rental/metas_edit.html', goal=goal, user_data=user_data)
+    return render_template('rental/goals/metas_edit.html', goal=goal, user_data=user_data)
 
 @rental_module_api.route('/metas/delete/<int:goal_id>', methods=['POST'])
 def metas_delete(goal_id):

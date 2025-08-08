@@ -1,3 +1,4 @@
+# rental/infraestructure/Repositories/goal_repository.py
 from typing import Optional, List
 
 from rental.domain.entities.goal import Goal
@@ -12,7 +13,8 @@ class GoalRepository:
                 id=record.id,
                 number_of_clients=record.number_of_clients,
                 month=record.month,
-                percentage_to_bonus=record.percentage_to_bonus
+                percentage_to_bonus=record.percentage_to_bonus,
+                owner_id=record.owner_id
             )
         except GoalModel.DoesNotExist:
             return None
@@ -23,7 +25,8 @@ class GoalRepository:
                 id=rec.id,
                 number_of_clients=rec.number_of_clients,
                 month=rec.month,
-                percentage_to_bonus=rec.percentage_to_bonus
+                percentage_to_bonus=rec.percentage_to_bonus,
+                owner_id=rec.owner_id
             )
             for rec in GoalModel.select()
         ]
@@ -32,13 +35,15 @@ class GoalRepository:
         record = GoalModel.create(
             number_of_clients=goal.number_of_clients,
             month=goal.month,
-            percentage_to_bonus=goal.percentage_to_bonus
+            percentage_to_bonus=goal.percentage_to_bonus,
+            owner_id=goal.owner_id
         )
         return Goal(
             id=record.id,
             number_of_clients=record.number_of_clients,
             month=record.month,
-            percentage_to_bonus=record.percentage_to_bonus
+            percentage_to_bonus=record.percentage_to_bonus,
+            owner_id=record.owner_id
         )
 
     def update(self, goal: Goal) -> Optional[Goal]:
@@ -47,12 +52,14 @@ class GoalRepository:
             record.number_of_clients = goal.number_of_clients
             record.month = goal.month
             record.percentage_to_bonus = goal.percentage_to_bonus
+            record.owner_id = goal.owner_id
             record.save()
             return Goal(
                 id=record.id,
                 number_of_clients=record.number_of_clients,
                 month=record.month,
-                percentage_to_bonus=record.percentage_to_bonus
+                percentage_to_bonus=record.percentage_to_bonus,
+                owner_id=record.owner_id
             )
         except GoalModel.DoesNotExist:
             return None
@@ -64,4 +71,3 @@ class GoalRepository:
             return True
         except GoalModel.DoesNotExist:
             return False
-

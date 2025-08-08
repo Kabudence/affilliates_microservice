@@ -13,3 +13,6 @@ class GoalQueryService:
     def list_all(self) -> List[Goal]:
         return self.goal_repo.get_all()
 
+    def list_by_owner_id(self, owner_id: int) -> List[Goal]:
+        # Ojo: si quieres optimizar, añade un método en el repo que filtre en DB (where owner_id == ...)
+        return [g for g in self.goal_repo.get_all() if g.owner_id == owner_id]
