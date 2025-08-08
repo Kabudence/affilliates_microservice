@@ -5,7 +5,8 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from flask import current_app
 
 from rental.domain.entities.commissions import CommissionsTypes
-from rental.domain.entities.plan import PlanType, _to_plan_type
+from rental.domain.entities.goal import GoalType
+from rental.domain.entities.plan import PlanType, _to_plan_type, Plan
 from rental.domain.entities.subscription import SubscriptionStatus
 from users.domain.model.entities.user import User, UserType
 
@@ -56,38 +57,32 @@ class UserFlowService:
         if not user:
             raise ValueError("User not found")
 
-        owner_user = self.user_query_service.get_by_id(user.user_owner_id) if user.user_owner_id else None
-        if not owner_user:
-            return None  # o lo que corresponda en tu flujo
-
-        subscription = self.subscription_query_service.get_subscription_by_user_id(owner_user.id)
-        if not subscription:
-            return None
-
-        plan = self.plan_query_service.get_by_id(subscription.plan_id)
+        plan = self.get_plan(user_id)
         if not plan:
             return None
-        goals=None
+
         plan_type = _to_plan_type(plan.plan_type)
+
+        # ⬇️ usa FRANCHISE para franquicia exclusiva, APPLICATION para el resto
         if plan_type == PlanType.FRANQUICIA_EXCLUSIVA:
-              goals = self.goal_query_service.list_by_owner_id(owner_user.id)
+            goals = self.goal_query_service.list_by_owner_id_and_goal_type(
+                user.user_owner_id, GoalType.FRANCHISE
+            )
+        else:
+            goals = self.goal_query_service.list_by_owner_id_and_goal_type(
+                plan.app_id, GoalType.APPLICATION
+            )
 
-
-
-        goals = self.goal_query_service.list_all()
         if not goals:
             raise ValueError("No hay goals cargados en la BD")
-        print("Goals cargados en la BD")
-        for goal in goals:
-            print(f"Goal ID: {goal.id}, Number of Clients: {goal.number_of_clients}")
 
         goal = min(goals, key=lambda g: g.number_of_clients)
 
         return self.user_goal_command_service.create(user_id=user_id, goal_id=goal.id)
 
 
-
     def buyer_user_flow(self, user_id: int, plan_id: int,plan_time_id:int):
+     # llamamos a un user
         user = self.user_query_service.get_by_id(user_id)
         if not user:
             raise ValueError("User not found")
@@ -102,23 +97,24 @@ class UserFlowService:
         subscription = self.subscription_command_service.create(
             plan_id=plan_id,
             user_id=user_id,
-            initial_date=initial_date,  # <-- aquí
-            final_date=final_date,  # <-- aquí
+            initial_date=initial_date,
+            final_date=final_date,
             status=SubscriptionStatus.ACTIVE
         )
 
         if not user.user_owner_id:
-            # Si no hay owner_id, está permitido, no hacer más validación
             return True
 
         owner_exists = self.user_query_service.get_by_id(user.user_owner_id)
         if not owner_exists:
             return True
 
-        # Obtener información del plan para el cálculo de comisión
+
         plan = self.plan_query_service.get_by_id(plan_id)
         if not plan:
             raise ValueError("Plan not found")
+
+        if
 
         plan_time_query_service = current_app.config["plan_time_query_service"]
         plan_time = plan_time_query_service.get_by_id(int(plan_time_id)) if plan_time_id else None
@@ -206,3 +202,20 @@ class UserFlowService:
                     )
 
 
+
+    def get_plan(self, user_id)->Optional[Plan]:
+        user = self.user_query_service.get_by_id(user_id)
+        if not user:
+            raise ValueError("User not found")
+
+        owner_user = self.user_query_service.get_by_id(user.user_owner_id) if user.user_owner_id else None
+        if not owner_user:
+            return None
+
+        subscription = self.subscription_query_service.get_subscription_by_user_id(owner_user.id)
+        if not subscription:
+            return None
+
+        plan = self.plan_query_service.get_by_id(subscription.plan_id)
+
+        return plan

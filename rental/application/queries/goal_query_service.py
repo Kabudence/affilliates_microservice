@@ -1,5 +1,5 @@
 from typing import List, Optional
-from rental.domain.entities.goal import Goal
+from rental.domain.entities.goal import Goal, GoalType
 from rental.infraestructure.Repositories.goal_repository import GoalRepository
 
 
@@ -13,6 +13,6 @@ class GoalQueryService:
     def list_all(self) -> List[Goal]:
         return self.goal_repo.get_all()
 
-    def list_by_owner_id(self, owner_id: int) -> List[Goal]:
-        # Ojo: si quieres optimizar, añade un método en el repo que filtre en DB (where owner_id == ...)
-        return [g for g in self.goal_repo.get_all() if g.owner_id == owner_id]
+    def get_by_owner_id_and_goal_type(self, owner_id: int, goal_type: GoalType | str) -> Optional[Goal]:
+        gt = goal_type if isinstance(goal_type, GoalType) else GoalType(goal_type)
+        return self.goal_repo.get_by_owner_id_and_goal_type(owner_id, gt)
