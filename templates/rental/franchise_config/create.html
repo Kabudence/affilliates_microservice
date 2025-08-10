@@ -1,0 +1,22 @@
+{% extends "dashboard/base.html" %}
+{% block content %}
+<h2 style="color:#e50914;font-weight:900;">Crear configuración</h2>
+
+<form method="post" class="app-feature-box" style="max-width:520px;">
+  <div class="mb-3">
+    <label>Franchise Owner ID</label>
+    <input type="number" name="franchise_owner_id" min="1" class="form-control" required>
+  </div>
+
+  <div class="form-check mb-3">
+    <input class="form-check-input" type="checkbox" value="1" id="chkCommissions" name="activate_commissions">
+    <label class="form-check-label" for="chkCommissions">
+      Activar comisiones
+    </label>
+  </div>
+
+  <button type="submit" class="btn btn-app w-100">Crear</button>
+  <a href="{{ url_for('rental_module_api.franchise_config_index') }}"
+     class="btn btn-secondary w-100 mt-2">Cancelar</a>
+</form>
+{% endblock %}

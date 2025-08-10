@@ -5,6 +5,7 @@ Database connection + table-creation helpers.
 
 from peewee import MySQLDatabase, SQL                    # SQL para constraints
 
+
 from shared.infrastructure.db_config import DB_CONFIG
 
 # ------------- conexión -------------
@@ -30,6 +31,10 @@ def init_db() -> None:
 
     # ------------ IMPORTS LOCALES ------------
     # Core-App
+    from rental.infraestructure.model.franchise_config_model import FranchiseConfigModel
+    from rental.infraestructure.model.franchise_discount_model import FranchiseDiscountModel
+    from rental.infraestructure.model.franchise_overpriced_model import FranchiseOverpricedModel
+    from rental.infraestructure.model.percent_commissions_model import PercentCommissionModel
     from application.infraestructure.model.application_data_model import ApplicationModel
     from rental.infraestructure.model.module_model import ModuleModel
     from rental.infraestructure.model.plan_model import PlanModel, PlanModuleModel
@@ -64,6 +69,12 @@ def init_db() -> None:
             InscriptionLevelModel,
             DistrictModel,
             RoyaltiesModel,
+
+            # Franquicia
+            FranchiseConfigModel,
+            FranchiseDiscountModel,
+            FranchiseOverpricedModel,
+            PercentCommissionModel,
 
             # Transacciones
             SubscriptionModel,

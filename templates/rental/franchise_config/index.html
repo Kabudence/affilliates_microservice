@@ -1,0 +1,49 @@
+{% extends "dashboard/base.html" %}
+{% block content %}
+<h2 class="mb-4" style="color:#e50914; font-weight:900;">Configuración de Franquicia</h2>
+
+<a href="{{ url_for('rental_module_api.franchise_config_create') }}"
+   class="btn btn-app mb-3" style="max-width:240px;">Crear configuración</a>
+
+<div class="table-responsive">
+  <table class="table table-dark table-bordered table-hover align-middle">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Franchise Owner ID</th>
+        <th>Comisiones activas</th>
+        <th style="width:160px;">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cfg in configs %}
+      <tr>
+        <td>{{ cfg.id }}</td>
+        <td>{{ cfg.franchise_owner_id }}</td>
+        <td>
+          {% if cfg.activate_commissions %}
+            <span class="badge bg-success">Sí</span>
+          {% else %}
+            <span class="badge bg-secondary">No</span>
+          {% endif %}
+        </td>
+        <td>
+          <a href="{{ url_for('rental_module_api.franchise_config_edit', config_id=cfg.id) }}"
+             class="btn btn-sm btn-warning">Editar</a>
+
+          <form action="{{ url_for('rental_module_api.franchise_config_delete', config_id=cfg.id) }}"
+                method="POST" style="display:inline;"
+                onsubmit="return confirm('¿Seguro que deseas eliminar esta configuración?');">
+            <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="4" class="text-center text-muted">No hay configuraciones registradas.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

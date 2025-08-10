@@ -61,16 +61,27 @@
     {% endif %}
 </div>
 {% if user_data.role == 'dueno_tienda' or user_data.type == '2' %}
-                <a href="{{ url_for('register_module_api.generar_links') }}" class="sidebar-link">Generación de links</a>
-<a href="{{ url_for('rental_module_api.comisiones_usuario') }}" class="sidebar-link">Comisiones actuales</a>
-            {% elif user_data.role == 'administrador' %}
-                <a href="/modulos" class="sidebar-link">Módulos</a>
-            <a href="{{ url_for('rental_module_api.planes_index') }}" class="sidebar-link">Planes</a>
-                <a href="{{ url_for('rental_module_api.metas_index') }}" class="sidebar-link">Metas</a>
-                <a href="/aplicaciones" class="sidebar-link">Aplicaciones</a>
-<a href="{{ url_for('rental_module_api.inscription_levels_index') }}" class="sidebar-link">Niveles Inscripción</a>
-                <a href="/royalties" class="sidebar-link">Royalties</a>
-            {% endif %}
+    <a href="{{ url_for('register_module_api.generar_links') }}" class="sidebar-link">Generación de links</a>
+    <a href="{{ url_for('rental_module_api.comisiones_usuario') }}" class="sidebar-link">Comisiones actuales</a>
+{% elif user_data.role == 'administrador' %}
+    <a href="/modulos" class="sidebar-link">Módulos</a>
+    <a href="{{ url_for('rental_module_api.planes_index') }}" class="sidebar-link">Planes</a>
+    <a href="{{ url_for('rental_module_api.metas_index') }}" class="sidebar-link">Metas</a>
+    <a href="/aplicaciones" class="sidebar-link">Aplicaciones</a>
+    <a href="{{ url_for('rental_module_api.inscription_levels_index') }}" class="sidebar-link">Niveles Inscripción</a>
+    <a href="/royalties" class="sidebar-link">Royalties</a>
+    <a href="{{ url_for('rental_module_api.franchise_config_index') }}" class="sidebar-link">Config. Franquicia</a>
+    <a href="{{ url_for('rental_module_api.franchise_discount_index') }}" class="sidebar-link">Descuentos Franquicia</a>
+    <a href="{{ url_for('rental_module_api.percent_commission_index') }}" class="sidebar-link">
+    Porcentajes Comisión
+</a>
+    <a href="{{ url_for('rental_module_api.franchise_overpriced_index') }}" class="sidebar-link">
+    Sobreprecios Franquicia
+</a>
+
+
+{% endif %}
+
         </div>
         <div class="sidebar-bottom">
             <div class="sidebar-user">

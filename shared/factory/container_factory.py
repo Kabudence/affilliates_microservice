@@ -123,7 +123,6 @@ def build_services():
     royalties_command_service = RoyaltiesCommandService(royalties_repo)
     royalties_query_service = RoyaltiesQueryService(royalties_repo)
     # User
-    user_command_service = UserCommandService(user_repo)
     user_query_service = UserQueryService(user_repo)
 
     # --- Percent Commission ---
@@ -142,15 +141,25 @@ def build_services():
     franchise_config_command_service = FranchiseConfigCommandService(franchise_config_repo)
     franchise_config_query_service = FranchiseConfigQueryService(franchise_config_repo)
 
+    user_command_service = UserCommandService(
+        user_repo,
+        user_query_service,
+        subscription_query_service,
+        plan_query_service
+    )
 
     user_flow_service = UserFlowService(
         user_goal_command_service=user_goal_command_service,
         user_command_service=user_command_service,
         user_query_service=user_query_service,
         subscription_command_service=subscription_command_service,
+        subscription_query_service=subscription_query_service,
         commission_command_service=commission_command_service,
         plan_query_service=plan_query_service,
-        goal_query_service=goal_query_service
+        goal_query_service=goal_query_service,
+        plan_time_query_service=plan_time_query_service,
+        franchise_overpriced_query_service=franchise_overpriced_query_service,
+        percent_commissions_query_service=percent_commission_query_service
     )
 
     return {

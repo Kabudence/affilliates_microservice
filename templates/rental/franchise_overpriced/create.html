@@ -1,0 +1,23 @@
+{% extends "dashboard/base.html" %}
+{% block content %}
+<h2 style="color:#e50914;font-weight:900;">Crear sobreprecio</h2>
+
+<form method="post" class="app-feature-box" style="max-width:520px;">
+  <div class="mb-3">
+    <label>Extra Price</label>
+    <input type="number" name="extra_price" step="0.01" min="0" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label>Franchise ID (opcional)</label>
+    <input type="number" name="franchise_id" min="1" class="form-control">
+  </div>
+  <div class="mb-3">
+    <label>Plan ID (opcional)</label>
+    <input type="number" name="plan_id" min="1" class="form-control">
+  </div>
+
+  <button type="submit" class="btn btn-app w-100">Crear</button>
+  <a href="{{ url_for('rental_module_api.franchise_overpriced_index') }}"
+     class="btn btn-secondary w-100 mt-2">Cancelar</a>
+</form>
+{% endblock %}

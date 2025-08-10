@@ -1,0 +1,28 @@
+{% extends "dashboard/base.html" %}
+{% block content %}
+<h2 style="color:#e50914;font-weight:900;">Editar porcentaje de comisión</h2>
+
+<form method="post" class="app-feature-box" style="max-width:520px;">
+  <div class="mb-3">
+    <label>Owner ID</label>
+    <input type="number" name="owner_id" min="1" class="form-control"
+           required value="{{ percent_commission.owner_id }}">
+  </div>
+  <div class="mb-3">
+    <label>Porcentaje (%)</label>
+    <input type="number" name="percent" step="0.01" min="0" class="form-control"
+           required value="{{ percent_commission.percent }}">
+  </div>
+  <div class="mb-3">
+    <label>Tipo de comisión</label>
+    <select name="commission_type" class="form-control" required>
+      <option value="FRANCHISE" {% if percent_commission.commission_type.value == "FRANCHISE" %}selected{% endif %}>Franquicia</option>
+      <option value="APPLICATION" {% if percent_commission.commission_type.value == "APPLICATION" %}selected{% endif %}>Aplicación</option>
+    </select>
+  </div>
+
+  <button type="submit" class="btn btn-app w-100">Actualizar</button>
+  <a href="{{ url_for('rental_module_api.percent_commission_index') }}"
+     class="btn btn-secondary w-100 mt-2">Cancelar</a>
+</form>
+{% endblock %}

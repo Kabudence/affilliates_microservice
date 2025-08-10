@@ -142,8 +142,7 @@ class UserFlowService:
 
         if parent_is_franchise:
             # Caso A: El PADRE es franquiciado → comisión solo al padre (según tu regla)
-            percent_cfg = self._get_franchise_percent(parent.id)  # p.ej. 0.20 si existe, sino default
-            overprice = self._get_overprice(parent.id, plan_id)  # extra configurado por el franquiciado para este plan
+            overprice = self._get_overprice(parent.id, plan_id)
             over_amount = (overprice.extra_price * plan_time.duration) if overprice else 0.0
 
             amount_parent = over_amount
@@ -151,7 +150,7 @@ class UserFlowService:
 
         elif (not parent_is_franchise) and grand_is_franchise:
             # Caso B: El ABUELO es franquiciado → comisión al padre y al abuelo
-            percent_cfg = self._get_franchise_percent(grandparent.id)
+
             overprice = self._get_overprice(grandparent.id, plan_id)
             over_amount = (overprice.extra_price * plan_time.duration) if overprice else 0.0
             commission_percent = self.percent_commissions_query_service.get_by_owner_and_type(grandparent.id,CommissionType.FRANCHISE)
@@ -176,7 +175,7 @@ class UserFlowService:
             self.commission_command_service.create(
                 user_id=uid,
                 amount=amount,
-                type=typ,  # CommissionsTypes.DIRECT/REFERRED si lo prefieres
+                type=typ,  # CommissionsTypes.DIRECT
                 subscription_id=subscription.id
             )
 

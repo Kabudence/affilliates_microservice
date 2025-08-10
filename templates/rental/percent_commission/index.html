@@ -1,0 +1,44 @@
+{% extends "dashboard/base.html" %}
+{% block content %}
+<h2 class="mb-4" style="color:#e50914; font-weight:900;">Porcentajes de Comisión</h2>
+
+<a href="{{ url_for('rental_module_api.percent_commission_create') }}"
+   class="btn btn-app mb-3" style="max-width:260px;">Crear porcentaje</a>
+
+<div class="table-responsive">
+  <table class="table table-dark table-bordered table-hover align-middle">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Owner ID</th>
+        <th>Porcentaje (%)</th>
+        <th>Tipo</th>
+        <th style="width:160px;">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for pc in percent_commissions %}
+      <tr>
+        <td>{{ pc.id }}</td>
+        <td>{{ pc.owner_id }}</td>
+        <td>{{ pc.percent }}</td>
+        <td>{{ pc.commission_type.value if pc.commission_type else '' }}</td>
+        <td>
+          <a href="{{ url_for('rental_module_api.percent_commission_edit', percent_commission_id=pc.id) }}"
+             class="btn btn-sm btn-warning">Editar</a>
+          <form action="{{ url_for('rental_module_api.percent_commission_delete', percent_commission_id=pc.id) }}"
+                method="POST" style="display:inline;"
+                onsubmit="return confirm('¿Seguro que deseas eliminar este porcentaje?');">
+            <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="5" class="text-center text-muted">No hay porcentajes registrados.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -485,3 +485,270 @@ def plan_time_delete(plan_id, time_id):
     except Exception as e:
         flash(f'Error eliminando horario: {e}', 'danger')
     return redirect(url_for('rental_module_api.planes_add_times', plan_id=plan_id))
+
+
+
+#FRANCHISE_CONFIG
+
+@rental_module_api.route('/franchise-config')
+def franchise_config_index():
+    franchise_config_qs = current_app.config["franchise_config_query_service"]
+    configs = franchise_config_qs.list_all()
+    user_data = session.get('user_data')
+    return render_template(
+        'rental/franchise_config/index.html',
+        configs=configs,
+        user_data=user_data
+    )
+
+
+# ---------- CREATE ----------
+@rental_module_api.route('/franchise-config/create', methods=['GET', 'POST'])
+def franchise_config_create():
+    franchise_config_cs = current_app.config["franchise_config_command_service"]
+    user_data = session.get('user_data')
+    if request.method == 'POST':
+        try:
+            franchise_owner_id = int(request.form['franchise_owner_id'])
+            activate_commissions = bool(request.form.get('activate_commissions'))
+            franchise_config_cs.create(franchise_owner_id, activate_commissions)
+            flash('Configuración creada exitosamente.', 'success')
+            return redirect(url_for('rental_module_api.franchise_config_index'))
+        except Exception as e:
+            flash(f'Error al crear la configuración: {e}', 'danger')
+    return render_template('rental/franchise_config/create.html', user_data=user_data)
+
+
+# ---------- EDIT ----------
+@rental_module_api.route('/franchise-config/edit/<int:config_id>', methods=['GET', 'POST'])
+def franchise_config_edit(config_id):
+    franchise_config_qs = current_app.config["franchise_config_query_service"]
+    franchise_config_cs = current_app.config["franchise_config_command_service"]
+    user_data = session.get('user_data')
+    config = franchise_config_qs.get_by_id(config_id)
+    if not config:
+        flash('Configuración no encontrada.', 'danger')
+        return redirect(url_for('rental_module_api.franchise_config_index'))
+    if request.method == 'POST':
+        try:
+            franchise_owner_id = int(request.form['franchise_owner_id'])
+            activate_commissions = bool(request.form.get('activate_commissions'))
+            franchise_config_cs.update(config_id, franchise_owner_id, activate_commissions)
+            flash('Configuración actualizada exitosamente.', 'success')
+            return redirect(url_for('rental_module_api.franchise_config_index'))
+        except Exception as e:
+            flash(f'Error al actualizar la configuración: {e}', 'danger')
+    return render_template(
+        'rental/franchise_config/edit.html',
+        config=config,
+        user_data=user_data
+    )
+
+
+# ---------- DELETE ----------
+@rental_module_api.route('/franchise-config/delete/<int:config_id>', methods=['POST'])
+def franchise_config_delete(config_id):
+    franchise_config_cs = current_app.config["franchise_config_command_service"]
+    try:
+        franchise_config_cs.delete(config_id)
+        flash('Configuración eliminada exitosamente.', 'success')
+    except Exception as e:
+        flash(f'Error al eliminar la configuración: {e}', 'danger')
+    return redirect(url_for('rental_module_api.franchise_config_index'))
+
+
+
+#---------------------FRANCHISE DISCOUT---------------------
+@rental_module_api.route('/franchise-discount')
+def franchise_discount_index():
+    discount_qs = current_app.config["franchise_discount_query_service"]
+    discounts = discount_qs.list_all()
+    user_data = session.get('user_data')
+    return render_template(
+        'rental/franchise_discount/index.html',
+        discounts=discounts, user_data=user_data
+    )
+
+@rental_module_api.route('/franchise-discount/create', methods=['GET', 'POST'])
+def franchise_discount_create():
+    discount_cs = current_app.config["franchise_discount_command_service"]
+    user_data = session.get('user_data')
+    if request.method == 'POST':
+        try:
+            percent = float(request.form['percent'])
+            app_id = int(request.form['app_id'])
+            discount_cs.create(percent, app_id)
+            flash('Descuento creado exitosamente.', 'success')
+            return redirect(url_for('rental_module_api.franchise_discount_index'))
+        except Exception as e:
+            flash(f'Error al crear el descuento: {e}', 'danger')
+    return render_template('rental/franchise_discount/create.html', user_data=user_data)
+
+@rental_module_api.route('/franchise-discount/edit/<int:discount_id>', methods=['GET', 'POST'])
+def franchise_discount_edit(discount_id):
+    discount_qs = current_app.config["franchise_discount_query_service"]
+    discount_cs = current_app.config["franchise_discount_command_service"]
+    user_data = session.get('user_data')
+    discount = discount_qs.get_by_id(discount_id)
+    if not discount:
+        flash('Descuento no encontrado.', 'danger')
+        return redirect(url_for('rental_module_api.franchise_discount_index'))
+    if request.method == 'POST':
+        try:
+            percent = float(request.form['percent'])
+            app_id = int(request.form['app_id'])
+            discount_cs.update(discount_id, percent, app_id)
+            flash('Descuento actualizado exitosamente.', 'success')
+            return redirect(url_for('rental_module_api.franchise_discount_index'))
+        except Exception as e:
+            flash(f'Error al actualizar el descuento: {e}', 'danger')
+    return render_template(
+        'rental/franchise_discount/edit.html',
+        discount=discount, user_data=user_data
+    )
+
+@rental_module_api.route('/franchise-discount/delete/<int:discount_id>', methods=['POST'])
+def franchise_discount_delete(discount_id):
+    discount_cs = current_app.config["franchise_discount_command_service"]
+    try:
+        discount_cs.delete(discount_id)
+        flash('Descuento eliminado exitosamente.', 'success')
+    except Exception as e:
+        flash(f'Error al eliminar el descuento: {e}', 'danger')
+    return redirect(url_for('rental_module_api.franchise_discount_index'))
+
+
+
+@rental_module_api.route('/percent-commissions')
+def percent_commission_index():
+    pc_qs = current_app.config["percent_commission_query_service"]
+    percent_commissions = pc_qs.list_all()
+    user_data = session.get('user_data')
+    return render_template(
+        'rental/percent_commission/index.html',
+        percent_commissions=percent_commissions,
+        user_data=user_data
+    )
+
+@rental_module_api.route('/percent-commissions/create', methods=['GET', 'POST'])
+def percent_commission_create():
+    pc_cs = current_app.config["percent_commission_command_service"]
+    user_data = session.get('user_data')
+    if request.method == 'POST':
+        try:
+            owner_id = int(request.form['owner_id'])
+            percent = float(request.form['percent'])
+            commission_type = request.form['commission_type']
+            pc_cs.create(owner_id, percent, commission_type)
+            flash('Porcentaje creado exitosamente.', 'success')
+            return redirect(url_for('rental_module_api.percent_commission_index'))
+        except Exception as e:
+            flash(f'Error al crear el porcentaje: {e}', 'danger')
+    return render_template('rental/percent_commission/create.html', user_data=user_data)
+
+@rental_module_api.route('/percent-commissions/edit/<int:percent_commission_id>', methods=['GET', 'POST'])
+def percent_commission_edit(percent_commission_id):
+    pc_qs = current_app.config["percent_commission_query_service"]
+    pc_cs = current_app.config["percent_commission_command_service"]
+    user_data = session.get('user_data')
+    percent_commission = pc_qs.get_by_id(percent_commission_id)
+    if not percent_commission:
+        flash('Porcentaje no encontrado.', 'danger')
+        return redirect(url_for('rental_module_api.percent_commission_index'))
+    if request.method == 'POST':
+        try:
+            owner_id = int(request.form['owner_id'])
+            percent = float(request.form['percent'])
+            commission_type = request.form['commission_type']
+            pc_cs.update(percent_commission_id, owner_id, percent, commission_type)
+            flash('Porcentaje actualizado exitosamente.', 'success')
+            return redirect(url_for('rental_module_api.percent_commission_index'))
+        except Exception as e:
+            flash(f'Error al actualizar el porcentaje: {e}', 'danger')
+    return render_template(
+        'rental/percent_commission/edit.html',
+        percent_commission=percent_commission,
+        user_data=user_data
+    )
+
+@rental_module_api.route('/percent-commissions/delete/<int:percent_commission_id>', methods=['POST'])
+def percent_commission_delete(percent_commission_id):
+    pc_cs = current_app.config["percent_commission_command_service"]
+    try:
+        pc_cs.delete(percent_commission_id)
+        flash('Porcentaje eliminado exitosamente.', 'success')
+    except Exception as e:
+        flash(f'Error al eliminar el porcentaje: {e}', 'danger')
+    return redirect(url_for('rental_module_api.percent_commission_index'))
+
+
+@rental_module_api.route('/franchise-overpriced')
+def franchise_overpriced_index():
+    fo_qs = current_app.config["franchise_overpriced_query_service"]
+    overpriced = fo_qs.list_all()
+    user_data = session.get('user_data')
+    return render_template(
+        'rental/franchise_overpriced/index.html',
+        overpriced=overpriced,
+        user_data=user_data
+    )
+
+@rental_module_api.route('/franchise-overpriced/create', methods=['GET', 'POST'])
+def franchise_overpriced_create():
+    fo_cs = current_app.config["franchise_overpriced_command_service"]
+    user_data = session.get('user_data')
+    if request.method == 'POST':
+        try:
+            extra_price = float(request.form['extra_price'])
+            franchise_id = request.form.get('franchise_id') or None
+            plan_id = request.form.get('plan_id') or None
+            fo_cs.create(
+                extra_price,
+                int(franchise_id) if franchise_id else None,
+                int(plan_id) if plan_id else None
+            )
+            flash('Sobreprecio creado exitosamente.', 'success')
+            return redirect(url_for('rental_module_api.franchise_overpriced_index'))
+        except Exception as e:
+            flash(f'Error al crear el sobreprecio: {e}', 'danger')
+    return render_template('rental/franchise_overpriced/create.html', user_data=user_data)
+
+@rental_module_api.route('/franchise-overpriced/edit/<int:overpriced_id>', methods=['GET', 'POST'])
+def franchise_overpriced_edit(overpriced_id):
+    fo_qs = current_app.config["franchise_overpriced_query_service"]
+    fo_cs = current_app.config["franchise_overpriced_command_service"]
+    user_data = session.get('user_data')
+    overpriced = fo_qs.get_by_id(overpriced_id)
+    if not overpriced:
+        flash('Sobreprecio no encontrado.', 'danger')
+        return redirect(url_for('rental_module_api.franchise_overpriced_index'))
+    if request.method == 'POST':
+        try:
+            extra_price = float(request.form['extra_price'])
+            franchise_id = request.form.get('franchise_id') or None
+            plan_id = request.form.get('plan_id') or None
+            fo_cs.update(
+                overpriced_id,
+                extra_price,
+                int(franchise_id) if franchise_id else None,
+                int(plan_id) if plan_id else None
+            )
+            flash('Sobreprecio actualizado exitosamente.', 'success')
+            return redirect(url_for('rental_module_api.franchise_overpriced_index'))
+        except Exception as e:
+            flash(f'Error al actualizar el sobreprecio: {e}', 'danger')
+    return render_template(
+        'rental/franchise_overpriced/edit.html',
+        overpriced=overpriced,
+        user_data=user_data
+    )
+
+@rental_module_api.route('/franchise-overpriced/delete/<int:overpriced_id>', methods=['POST'])
+def franchise_overpriced_delete(overpriced_id):
+    fo_cs = current_app.config["franchise_overpriced_command_service"]
+    try:
+        fo_cs.delete(overpriced_id)
+        flash('Sobreprecio eliminado exitosamente.', 'success')
+    except Exception as e:
+        flash(f'Error al eliminar el sobreprecio: {e}', 'danger')
+    return redirect(url_for('rental_module_api.franchise_overpriced_index'))
