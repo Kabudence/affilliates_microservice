@@ -4,16 +4,18 @@
 
 <form method="post" class="app-feature-box" style="max-width:520px;">
   <div class="mb-3">
-    <label>Extra Price</label>
+    <label>Owner (derivado)</label>
+    <input type="text" class="form-control" value="{{ owner_id }}" disabled>
+  </div>
+
+  <div class="mb-3">
+    <label>Plan ID</label>
+    <input type="number" name="plan_id" min="1" class="form-control" required>
+  </div>
+
+  <div class="mb-3">
+    <label>Sobreprecio</label>
     <input type="number" name="extra_price" step="0.01" min="0" class="form-control" required>
-  </div>
-  <div class="mb-3">
-    <label>Franchise ID (opcional)</label>
-    <input type="number" name="franchise_id" min="1" class="form-control">
-  </div>
-  <div class="mb-3">
-    <label>Plan ID (opcional)</label>
-    <input type="number" name="plan_id" min="1" class="form-control">
   </div>
 
   <button type="submit" class="btn btn-app w-100">Crear</button>

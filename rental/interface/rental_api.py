@@ -1,64 +1,151 @@
+from typing import Optional
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 
 from application.domain.entities.application_data import ApplicationType
+from rental.domain.entities.goal import GoalType
+from rental.domain.entities.percent_comissions import CommissionType
 from rental.domain.entities.plan import PlanType
+from users.domain.model.entities.user import User
 
 rental_module_api = Blueprint('rental_module_api', __name__)
+# rental/interfaces/http/controllers/goals.py (o donde tengas las rutas)
+
 
 @rental_module_api.route('/metas')
 def metas_index():
-    goal_query_service = current_app.config["goal_query_service"]
-    goals = goal_query_service.list_all()
-    user_data = session.get('user_data')
-    return render_template('rental/goals/metas_index.html', goals=goals, user_data=user_data)
+    goal_qs = current_app.config["goal_query_service"]
+
+    std = get_user_data_standardized()
+    if not std or not isinstance(std, tuple) or not std[0]:
+        flash("No se pudo determinar el usuario.", "danger")
+        return redirect(url_for('register_module_api.show_applications'))
+
+    info, is_franchise = std  # info es dict, is_franchise bool
+
+    owner_id = info["account_id"] if is_franchise else info["app_id"]
+    gtype    = GoalType.FRANCHISE if is_franchise else GoalType.APPLICATION
+
+    goals = goal_qs.list_by_owner_id_and_goal_type(owner_id, gtype)
+
+    # Pasa también info estandarizada si quieres mostrar quién es el owner usado
+    return render_template(
+        'rental/goals/metas_index.html',
+        goals=goals,
+        user_data=info,
+        is_franchise=is_franchise,
+        owner_id=owner_id,
+        goal_type=gtype.value
+    )
+
 
 @rental_module_api.route('/metas/create', methods=['GET', 'POST'])
 def metas_create():
     goal_command_service = current_app.config["goal_command_service"]
-    user_data = session.get('user_data')
+
+    # 1) Usuario estandarizado (dict info, bool is_franchise)
+    std = get_user_data_standardized()
+    if not std or not isinstance(std, tuple) or not std[0]:
+        flash("No se pudo determinar el usuario autenticado.", "danger")
+        return redirect(url_for('rental_module_api.metas_index'))
+
+    info, is_franchise = std
+    # 2) Derivar owner y tipo de meta desde el contexto del usuario
+    from rental.domain.entities.goal import GoalType
+    owner_id = info["account_id"] if is_franchise else info["app_id"]
+    goal_type = GoalType.FRANCHISE if is_franchise else GoalType.APPLICATION
+
     if request.method == 'POST':
         try:
-            number_of_clients = int(request.form['number_of_clients'])
-            month = int(request.form['month'])
+            number_of_clients   = int(request.form['number_of_clients'])
+            month               = int(request.form['month'])
             percentage_to_bonus = float(request.form['percentage_to_bonus'])
-            goal_command_service.create(number_of_clients, month, percentage_to_bonus)
+
+            # 3) Crear meta con owner/tipo derivados (no confiamos en el cliente)
+            goal_command_service.create(
+                number_of_clients=number_of_clients,
+                month=month,
+                percentage_to_bonus=percentage_to_bonus,
+                owner_id=owner_id,
+                goal_type=goal_type,
+            )
             flash('Meta creada exitosamente.', 'success')
             return redirect(url_for('rental_module_api.metas_index'))
         except Exception as e:
             flash('Error al crear la meta: ' + str(e), 'danger')
-    return render_template('rental/goals/metas_create.html', user_data=user_data)
+
+    # 4) Render: mostramos owner/tipo como contexto informativo (no editables)
+    return render_template(
+        'rental/goals/metas_create.html',
+        user_data=info,
+        is_franchise=is_franchise,
+        owner_id=owner_id,
+        goal_type=goal_type.value
+    )
+
+
 
 @rental_module_api.route('/metas/edit/<int:goal_id>', methods=['GET', 'POST'])
 def metas_edit(goal_id):
-    goal_query_service = current_app.config["goal_query_service"]
-    goal_command_service = current_app.config["goal_command_service"]
-    user_data = session.get('user_data')
+    goal_query_service    = current_app.config["goal_query_service"]
+    goal_command_service  = current_app.config["goal_command_service"]
+
+    # 1) Usuario estandarizado
+    std = get_user_data_standardized()
+    if not std or not isinstance(std, tuple) or not std[0]:
+        flash("No se pudo determinar el usuario autenticado.", "danger")
+        return redirect(url_for('rental_module_api.metas_index'))
+
+    info, is_franchise = std
+    owner_id_ctx = info["account_id"] if is_franchise else info["app_id"]
+    goal_type_ctx = GoalType.FRANCHISE if is_franchise else GoalType.APPLICATION
+
+    # 2) Cargar meta
     goal = goal_query_service.get_by_id(goal_id)
     if not goal:
         flash('Meta no encontrada.', 'danger')
         return redirect(url_for('rental_module_api.metas_index'))
+
     if request.method == 'POST':
         try:
-            number_of_clients = int(request.form['number_of_clients'])
-            month = int(request.form['month'])
+            number_of_clients   = int(request.form['number_of_clients'])
+            month               = int(request.form['month'])
             percentage_to_bonus = float(request.form['percentage_to_bonus'])
-            goal_command_service.update(goal_id, number_of_clients, month, percentage_to_bonus)
+
+            # 3) Actualizar forzando owner/type desde el contexto (no confiamos en el form)
+            goal_command_service.update(
+                goal_id=goal_id,
+                number_of_clients=number_of_clients,
+                month=month,
+                percentage_to_bonus=percentage_to_bonus,
+                owner_id=owner_id_ctx,
+                goal_type=goal_type_ctx
+            )
             flash('Meta actualizada exitosamente.', 'success')
             return redirect(url_for('rental_module_api.metas_index'))
         except Exception as e:
             flash('Error al actualizar la meta: ' + str(e), 'danger')
-    return render_template('rental/goals/metas_edit.html', goal=goal, user_data=user_data)
+
+    # 4) Render con contexto (solo informativo)
+    return render_template(
+        'rental/goals/metas_edit.html',
+        goal=goal,
+        user_data=info,
+        is_franchise=is_franchise,
+        owner_id=owner_id_ctx,
+        goal_type=goal_type_ctx.value
+    )
+
 
 @rental_module_api.route('/metas/delete/<int:goal_id>', methods=['POST'])
 def metas_delete(goal_id):
-    goal_command_service = current_app.config["goal_command_service"]
+    goal_cs = current_app.config["goal_command_service"]
     try:
-        goal_command_service.delete(goal_id)
+        goal_cs.delete(goal_id)
         flash('Meta eliminada exitosamente.', 'success')
     except Exception as e:
         flash('Error al eliminar la meta: ' + str(e), 'danger')
     return redirect(url_for('rental_module_api.metas_index'))
-
 
 
 # ---------- Applications ----------
@@ -489,16 +576,29 @@ def plan_time_delete(plan_id, time_id):
 
 
 #FRANCHISE_CONFIG
+# FRANCHISE_CONFIG
 
 @rental_module_api.route('/franchise-config')
 def franchise_config_index():
     franchise_config_qs = current_app.config["franchise_config_query_service"]
-    configs = franchise_config_qs.list_all()
-    user_data = session.get('user_data')
+
+    std = get_user_data_standardized()
+    if not std or not isinstance(std, tuple) or not std[0]:
+        flash("No se pudo determinar el usuario autenticado.", "danger")
+        return redirect(url_for('register_module_api.show_applications'))
+
+    info, _is_franchise = std
+    account_id = info.get("account_id")
+
+    # Solo listamos la config del owner autenticado
+    cfg = franchise_config_qs.get_by_franchise_owner_id(account_id)
+    configs = [cfg] if cfg else []
+
     return render_template(
         'rental/franchise_config/index.html',
         configs=configs,
-        user_data=user_data
+        user_data=info,             # pásalo estandarizado
+        owner_id=account_id
     )
 
 
@@ -506,17 +606,30 @@ def franchise_config_index():
 @rental_module_api.route('/franchise-config/create', methods=['GET', 'POST'])
 def franchise_config_create():
     franchise_config_cs = current_app.config["franchise_config_command_service"]
-    user_data = session.get('user_data')
+
+    std = get_user_data_standardized()
+    if not std or not isinstance(std, tuple) or not std[0]:
+        flash("No se pudo determinar el usuario autenticado.", "danger")
+        return redirect(url_for('rental_module_api.franchise_config_index'))
+
+    info, _is_franchise = std
+    account_id = info.get("account_id")
+
     if request.method == 'POST':
         try:
-            franchise_owner_id = int(request.form['franchise_owner_id'])
-            activate_commissions = bool(request.form.get('activate_commissions'))
-            franchise_config_cs.create(franchise_owner_id, activate_commissions)
+            # Checkbox: presente -> True
+            activate_commissions = request.form.get('activate_commissions') is not None
+            franchise_config_cs.create(account_id, activate_commissions)
             flash('Configuración creada exitosamente.', 'success')
             return redirect(url_for('rental_module_api.franchise_config_index'))
         except Exception as e:
             flash(f'Error al crear la configuración: {e}', 'danger')
-    return render_template('rental/franchise_config/create.html', user_data=user_data)
+
+    return render_template(
+        'rental/franchise_config/create.html',
+        user_data=info,
+        owner_id=account_id
+    )
 
 
 # ---------- EDIT ----------
@@ -524,41 +637,77 @@ def franchise_config_create():
 def franchise_config_edit(config_id):
     franchise_config_qs = current_app.config["franchise_config_query_service"]
     franchise_config_cs = current_app.config["franchise_config_command_service"]
-    user_data = session.get('user_data')
+
+    std = get_user_data_standardized()
+    if not std or not isinstance(std, tuple) or not std[0]:
+        flash("No se pudo determinar el usuario autenticado.", "danger")
+        return redirect(url_for('rental_module_api.franchise_config_index'))
+
+    info, _is_franchise = std
+    account_id = info.get("account_id")
+
     config = franchise_config_qs.get_by_id(config_id)
     if not config:
         flash('Configuración no encontrada.', 'danger')
         return redirect(url_for('rental_module_api.franchise_config_index'))
+
+    # (Opcional) Asegura ownership
+    if config.franchise_owner_id != account_id:
+        flash('No tienes permisos para editar esta configuración.', 'danger')
+        return redirect(url_for('rental_module_api.franchise_config_index'))
+
     if request.method == 'POST':
         try:
-            franchise_owner_id = int(request.form['franchise_owner_id'])
-            activate_commissions = bool(request.form.get('activate_commissions'))
-            franchise_config_cs.update(config_id, franchise_owner_id, activate_commissions)
+            activate_commissions = request.form.get('activate_commissions') is not None
+            # Forzamos owner con el autenticado
+            franchise_config_cs.update(config_id, account_id, activate_commissions)
             flash('Configuración actualizada exitosamente.', 'success')
             return redirect(url_for('rental_module_api.franchise_config_index'))
         except Exception as e:
             flash(f'Error al actualizar la configuración: {e}', 'danger')
+
     return render_template(
         'rental/franchise_config/edit.html',
         config=config,
-        user_data=user_data
+        user_data=info,
+        owner_id=account_id
     )
 
 
 # ---------- DELETE ----------
 @rental_module_api.route('/franchise-config/delete/<int:config_id>', methods=['POST'])
 def franchise_config_delete(config_id):
+    franchise_config_qs = current_app.config["franchise_config_query_service"]
     franchise_config_cs = current_app.config["franchise_config_command_service"]
+
+    std = get_user_data_standardized()
+    if not std or not isinstance(std, tuple) or not std[0]:
+        flash("No se pudo determinar el usuario autenticado.", "danger")
+        return redirect(url_for('rental_module_api.franchise_config_index'))
+
+    info, _is_franchise = std
+    account_id = info.get("account_id")
+
+    config = franchise_config_qs.get_by_id(config_id)
+    if not config:
+        flash('Configuración no encontrada.', 'danger')
+        return redirect(url_for('rental_module_api.franchise_config_index'))
+
+    # (Opcional) Asegura ownership
+    if config.franchise_owner_id != account_id:
+        flash('No tienes permisos para eliminar esta configuración.', 'danger')
+        return redirect(url_for('rental_module_api.franchise_config_index'))
+
     try:
         franchise_config_cs.delete(config_id)
-        flash('Configuración eliminada exitosamente.', 'success')
+        flash('Configuración eliminada.', 'success')
     except Exception as e:
-        flash(f'Error al eliminar la configuración: {e}', 'danger')
+        flash(f'Error eliminando configuración: {e}', 'danger')
+
     return redirect(url_for('rental_module_api.franchise_config_index'))
 
 
-
-#---------------------FRANCHISE DISCOUT---------------------
+#FRANCHISE DISCOUT
 @rental_module_api.route('/franchise-discount')
 def franchise_discount_index():
     discount_qs = current_app.config["franchise_discount_query_service"]
@@ -619,136 +768,376 @@ def franchise_discount_delete(discount_id):
 
 
 
+
+
+
 @rental_module_api.route('/percent-commissions')
 def percent_commission_index():
     pc_qs = current_app.config["percent_commission_query_service"]
-    percent_commissions = pc_qs.list_all()
-    user_data = session.get('user_data')
+
+    std = get_user_data_standardized()
+    if not std or not isinstance(std, tuple) or not std[0]:
+        flash("No se pudo determinar el usuario autenticado.", "danger")
+        return redirect(url_for('register_module_api.show_applications'))
+
+    info, is_franchise = std
+    owner_id = info["account_id"] if is_franchise else info["app_id"]
+    ctype    = CommissionType.FRANCHISE if is_franchise else CommissionType.APPLICATION
+
+    # único % relevante al contexto actual
+    pc = pc_qs.get_by_owner_and_type(owner_id, ctype)
+    percent_commissions = [pc] if pc else []
+
     return render_template(
         'rental/percent_commission/index.html',
         percent_commissions=percent_commissions,
-        user_data=user_data
+        user_data=info,
+        owner_id=owner_id,
+        commission_type=ctype.value,
+        is_franchise=is_franchise
     )
+
 
 @rental_module_api.route('/percent-commissions/create', methods=['GET', 'POST'])
 def percent_commission_create():
     pc_cs = current_app.config["percent_commission_command_service"]
-    user_data = session.get('user_data')
+
+    std = get_user_data_standardized()
+    if not std or not isinstance(std, tuple) or not std[0]:
+        flash("No se pudo determinar el usuario autenticado.", "danger")
+        return redirect(url_for('rental_module_api.percent_commission_index'))
+
+    info, is_franchise = std
+    owner_id = info["account_id"] if is_franchise else info["app_id"]
+    ctype    = CommissionType.FRANCHISE if is_franchise else CommissionType.APPLICATION
+
     if request.method == 'POST':
         try:
-            owner_id = int(request.form['owner_id'])
             percent = float(request.form['percent'])
-            commission_type = request.form['commission_type']
-            pc_cs.create(owner_id, percent, commission_type)
+            # Forzamos owner y tipo desde contexto
+            pc_cs.create(owner_id, percent, ctype)
             flash('Porcentaje creado exitosamente.', 'success')
             return redirect(url_for('rental_module_api.percent_commission_index'))
         except Exception as e:
             flash(f'Error al crear el porcentaje: {e}', 'danger')
-    return render_template('rental/percent_commission/create.html', user_data=user_data)
+
+    return render_template(
+        'rental/percent_commission/create.html',
+        user_data=info,
+        owner_id=owner_id,
+        commission_type=ctype.value
+    )
+
 
 @rental_module_api.route('/percent-commissions/edit/<int:percent_commission_id>', methods=['GET', 'POST'])
 def percent_commission_edit(percent_commission_id):
     pc_qs = current_app.config["percent_commission_query_service"]
     pc_cs = current_app.config["percent_commission_command_service"]
-    user_data = session.get('user_data')
+
+    std = get_user_data_standardized()
+    if not std or not isinstance(std, tuple) or not std[0]:
+        flash("No se pudo determinar el usuario autenticado.", "danger")
+        return redirect(url_for('rental_module_api.percent_commission_index'))
+
+    info, is_franchise = std
+    owner_id_ctx = info["account_id"] if is_franchise else info["app_id"]
+    ctype_ctx    = CommissionType.FRANCHISE if is_franchise else CommissionType.APPLICATION
+
     percent_commission = pc_qs.get_by_id(percent_commission_id)
     if not percent_commission:
         flash('Porcentaje no encontrado.', 'danger')
         return redirect(url_for('rental_module_api.percent_commission_index'))
+
+    # (Opcional) Valida ownership por contexto
+    if percent_commission.owner_id != owner_id_ctx or percent_commission.commission_type != ctype_ctx:
+        flash('No tienes permisos para editar este porcentaje en este contexto.', 'danger')
+        return redirect(url_for('rental_module_api.percent_commission_index'))
+
     if request.method == 'POST':
         try:
-            owner_id = int(request.form['owner_id'])
             percent = float(request.form['percent'])
-            commission_type = request.form['commission_type']
-            pc_cs.update(percent_commission_id, owner_id, percent, commission_type)
+            # Forzamos owner y tipo desde contexto (no confiamos en el form)
+            pc_cs.update(percent_commission_id, owner_id_ctx, percent, ctype_ctx)
             flash('Porcentaje actualizado exitosamente.', 'success')
             return redirect(url_for('rental_module_api.percent_commission_index'))
         except Exception as e:
             flash(f'Error al actualizar el porcentaje: {e}', 'danger')
+
     return render_template(
         'rental/percent_commission/edit.html',
         percent_commission=percent_commission,
-        user_data=user_data
+        user_data=info,
+        owner_id=owner_id_ctx,
+        commission_type=ctype_ctx.value
     )
+
 
 @rental_module_api.route('/percent-commissions/delete/<int:percent_commission_id>', methods=['POST'])
 def percent_commission_delete(percent_commission_id):
+    pc_qs = current_app.config["percent_commission_query_service"]
     pc_cs = current_app.config["percent_commission_command_service"]
+
+    std = get_user_data_standardized()
+    if not std or not isinstance(std, tuple) or not std[0]:
+        flash("No se pudo determinar el usuario autenticado.", "danger")
+        return redirect(url_for('rental_module_api.percent_commission_index'))
+
+    info, is_franchise = std
+    owner_id_ctx = info["account_id"] if is_franchise else info["app_id"]
+    ctype_ctx    = CommissionType.FRANCHISE if is_franchise else CommissionType.APPLICATION
+
+    percent_commission = pc_qs.get_by_id(percent_commission_id)
+    if not percent_commission:
+        flash('Porcentaje no encontrado.', 'danger')
+        return redirect(url_for('rental_module_api.percent_commission_index'))
+
+    # (Opcional) Valida ownership por contexto
+    if percent_commission.owner_id != owner_id_ctx or percent_commission.commission_type != ctype_ctx:
+        flash('No tienes permisos para eliminar este porcentaje en este contexto.', 'danger')
+        return redirect(url_for('rental_module_api.percent_commission_index'))
+
     try:
         pc_cs.delete(percent_commission_id)
         flash('Porcentaje eliminado exitosamente.', 'success')
     except Exception as e:
         flash(f'Error al eliminar el porcentaje: {e}', 'danger')
+
     return redirect(url_for('rental_module_api.percent_commission_index'))
 
 
 @rental_module_api.route('/franchise-overpriced')
 def franchise_overpriced_index():
     fo_qs = current_app.config["franchise_overpriced_query_service"]
-    overpriced = fo_qs.list_all()
-    user_data = session.get('user_data')
+
+    std = get_user_data_standardized()
+    if not std or not isinstance(std, tuple) or not std[0]:
+        flash("No se pudo determinar el usuario autenticado.", "danger")
+        return redirect(url_for('register_module_api.show_applications'))
+
+    info, is_franchise = std
+    if not is_franchise:
+        # Si no es franquiciado, no tiene sentido el módulo
+        flash("Este módulo es solo para franquiciados.", "warning")
+        return render_template(
+            'rental/franchise_overpriced/index.html',
+            overpriced=[],
+            user_data=info,
+            owner_id=None,
+            is_franchise=is_franchise
+        )
+
+    franchise_id = info["account_id"]
+    overpriced = fo_qs.list_by_franchise_id(franchise_id)
+
     return render_template(
         'rental/franchise_overpriced/index.html',
         overpriced=overpriced,
-        user_data=user_data
+        user_data=info,
+        owner_id=franchise_id,
+        is_franchise=is_franchise
     )
+
 
 @rental_module_api.route('/franchise-overpriced/create', methods=['GET', 'POST'])
 def franchise_overpriced_create():
     fo_cs = current_app.config["franchise_overpriced_command_service"]
-    user_data = session.get('user_data')
+
+    std = get_user_data_standardized()
+    if not std or not isinstance(std, tuple) or not std[0]:
+        flash("No se pudo determinar el usuario autenticado.", "danger")
+        return redirect(url_for('rental_module_api.franchise_overpriced_index'))
+
+    info, is_franchise = std
+    if not is_franchise:
+        flash("Solo un franquiciado puede crear sobreprecios.", "warning")
+        return redirect(url_for('rental_module_api.franchise_overpriced_index'))
+
+    franchise_id = info["account_id"]
+
     if request.method == 'POST':
         try:
             extra_price = float(request.form['extra_price'])
-            franchise_id = request.form.get('franchise_id') or None
-            plan_id = request.form.get('plan_id') or None
-            fo_cs.create(
-                extra_price,
-                int(franchise_id) if franchise_id else None,
-                int(plan_id) if plan_id else None
-            )
+            plan_id_raw = request.form.get('plan_id') or None
+            plan_id = int(plan_id_raw) if plan_id_raw else None
+
+            # Forzamos franchise_id desde el contexto
+            fo_cs.create(extra_price, franchise_id, plan_id)
             flash('Sobreprecio creado exitosamente.', 'success')
             return redirect(url_for('rental_module_api.franchise_overpriced_index'))
         except Exception as e:
             flash(f'Error al crear el sobreprecio: {e}', 'danger')
-    return render_template('rental/franchise_overpriced/create.html', user_data=user_data)
+
+    return render_template(
+        'rental/franchise_overpriced/create.html',
+        user_data=info,
+        owner_id=franchise_id
+    )
+
 
 @rental_module_api.route('/franchise-overpriced/edit/<int:overpriced_id>', methods=['GET', 'POST'])
 def franchise_overpriced_edit(overpriced_id):
     fo_qs = current_app.config["franchise_overpriced_query_service"]
     fo_cs = current_app.config["franchise_overpriced_command_service"]
-    user_data = session.get('user_data')
+
+    std = get_user_data_standardized()
+    if not std or not isinstance(std, tuple) or not std[0]:
+        flash("No se pudo determinar el usuario autenticado.", "danger")
+        return redirect(url_for('rental_module_api.franchise_overpriced_index'))
+
+    info, is_franchise = std
+    if not is_franchise:
+        flash("Solo un franquiciado puede editar sobreprecios.", "warning")
+        return redirect(url_for('rental_module_api.franchise_overpriced_index'))
+
+    franchise_id_ctx = info["account_id"]
+
     overpriced = fo_qs.get_by_id(overpriced_id)
     if not overpriced:
         flash('Sobreprecio no encontrado.', 'danger')
         return redirect(url_for('rental_module_api.franchise_overpriced_index'))
+
+    # Enforce ownership
+    if overpriced.franchise_id != franchise_id_ctx:
+        flash('No tienes permisos para editar este sobreprecio.', 'danger')
+        return redirect(url_for('rental_module_api.franchise_overpriced_index'))
+
     if request.method == 'POST':
         try:
             extra_price = float(request.form['extra_price'])
-            franchise_id = request.form.get('franchise_id') or None
-            plan_id = request.form.get('plan_id') or None
-            fo_cs.update(
-                overpriced_id,
-                extra_price,
-                int(franchise_id) if franchise_id else None,
-                int(plan_id) if plan_id else None
-            )
+            plan_id_raw = request.form.get('plan_id') or None
+            plan_id = int(plan_id_raw) if plan_id_raw else None
+
+            # Forzamos franchise_id del contexto
+            fo_cs.update(overpriced_id, extra_price, franchise_id_ctx, plan_id)
             flash('Sobreprecio actualizado exitosamente.', 'success')
             return redirect(url_for('rental_module_api.franchise_overpriced_index'))
         except Exception as e:
             flash(f'Error al actualizar el sobreprecio: {e}', 'danger')
+
     return render_template(
         'rental/franchise_overpriced/edit.html',
         overpriced=overpriced,
-        user_data=user_data
+        user_data=info,
+        owner_id=franchise_id_ctx
     )
+
 
 @rental_module_api.route('/franchise-overpriced/delete/<int:overpriced_id>', methods=['POST'])
 def franchise_overpriced_delete(overpriced_id):
+    fo_qs = current_app.config["franchise_overpriced_query_service"]
     fo_cs = current_app.config["franchise_overpriced_command_service"]
+
+    std = get_user_data_standardized()
+    if not std or not isinstance(std, tuple) or not std[0]:
+        flash("No se pudo determinar el usuario autenticado.", "danger")
+        return redirect(url_for('rental_module_api.franchise_overpriced_index'))
+
+    info, is_franchise = std
+    if not is_franchise:
+        flash("Solo un franquiciado puede eliminar sobreprecios.", "warning")
+        return redirect(url_for('rental_module_api.franchise_overpriced_index'))
+
+    franchise_id_ctx = info["account_id"]
+
+    overpriced = fo_qs.get_by_id(overpriced_id)
+    if not overpriced:
+        flash('Sobreprecio no encontrado.', 'danger')
+        return redirect(url_for('rental_module_api.franchise_overpriced_index'))
+
+    # Enforce ownership
+    if overpriced.franchise_id != franchise_id_ctx:
+        flash('No tienes permisos para eliminar este sobreprecio.', 'danger')
+        return redirect(url_for('rental_module_api.franchise_overpriced_index'))
+
     try:
         fo_cs.delete(overpriced_id)
         flash('Sobreprecio eliminado exitosamente.', 'success')
     except Exception as e:
         flash(f'Error al eliminar el sobreprecio: {e}', 'danger')
     return redirect(url_for('rental_module_api.franchise_overpriced_index'))
+
+
+
+def get_user_data_standardized():
+    """
+    Devuelve:
+    (
+        {
+            "id": int,
+            "role": str | None,
+            "type": str | None,
+            "username": str,
+            "account_id": int,
+            "user_owner_id": int | None,
+            "app_id": int
+        },
+        bool  # this_user_is_franchise
+    )
+    """
+
+    user_data = session.get('user_data')
+    app_id_raw = session.get('app_id')
+
+    if not user_data:
+        return None, False
+
+    # --- Normalizar ID, role, type y username según formato recibido ---
+    if isinstance(user_data, dict):
+        if "role" in user_data:  # Plataforma tipo 1
+            user_id = user_data.get("id")
+            role = user_data.get("role")
+            type_ = None
+            username = user_data.get("username")
+        elif "user_id" in user_data:  # Plataforma tipo 2
+            user_id = int(user_data.get("user_id"))
+            role = None
+            type_ = user_data.get("type")
+            username = user_data.get("username")
+        else:
+            return None, False
+    else:
+        return None, False
+
+    # --- Convertir app_id ---
+    try:
+        app_id = int(app_id_raw) if app_id_raw else None
+    except (ValueError, TypeError):
+        return None, False
+
+    if not user_id or not app_id:
+        return None, False
+
+    # --- Obtener usuario interno ---
+    user_query_service = current_app.config["user_query_service"]
+    user_cross = user_query_service.find_by_account_and_app(user_id, app_id)
+    if not user_cross:
+        return None, False
+
+    # --- Armar primer objeto ---
+    result_info = {
+        "id": user_id,
+        "role": role,
+        "type": type_,
+        "username": username,
+        "account_id": user_cross.id,
+        "user_owner_id": user_cross.user_owner_id,
+        "app_id": user_cross.app_id
+    }
+    print( result_info )
+
+    # --- Determinar si ESTE usuario es franquicia ---
+    plan_qs = current_app.config["plan_query_service"]
+    subscription_qs = current_app.config["subscription_query_service"]
+
+    subscription = subscription_qs.get_subscription_by_user_id(user_cross.id)
+    if subscription:
+        plan = plan_qs.get_by_id(subscription.plan_id)
+        this_user_is_franchise = (
+            plan is not None and plan.plan_type.name == "FRANQUICIA_EXCLUSIVA"
+        )
+    else:
+        this_user_is_franchise = False
+
+    return result_info, this_user_is_franchise
+
+

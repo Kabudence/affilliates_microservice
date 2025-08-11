@@ -2,17 +2,23 @@
 {% block content %}
 <h2 class="mb-4" style="color:#e50914; font-weight:900;">Sobreprecios de Franquicia</h2>
 
-<a href="{{ url_for('rental_module_api.franchise_overpriced_create') }}"
-   class="btn btn-app mb-3" style="max-width:260px;">Crear sobreprecio</a>
+<p class="text-muted">
+  {{ 'Franquiciado' if is_franchise else 'No franquiciado' }}
+  {% if owner_id %}| Owner: {{ owner_id }}{% endif %}
+</p>
+
+{% if is_franchise %}
+  <a href="{{ url_for('rental_module_api.franchise_overpriced_create') }}"
+     class="btn btn-app mb-3" style="max-width:240px;">Crear sobreprecio</a>
+{% endif %}
 
 <div class="table-responsive">
   <table class="table table-dark table-bordered table-hover align-middle">
     <thead>
       <tr>
         <th>ID</th>
-        <th>Extra Price</th>
-        <th>Franchise ID</th>
         <th>Plan ID</th>
+        <th>Sobreprecio</th>
         <th style="width:160px;">Acciones</th>
       </tr>
     </thead>
@@ -20,22 +26,21 @@
       {% for fo in overpriced %}
       <tr>
         <td>{{ fo.id }}</td>
-        <td>{{ fo.extra_price }}</td>
-        <td>{{ fo.franchise_id }}</td>
         <td>{{ fo.plan_id }}</td>
+        <td>{{ '%.2f'|format(fo.extra_price) }}</td>
         <td>
           <a href="{{ url_for('rental_module_api.franchise_overpriced_edit', overpriced_id=fo.id) }}"
              class="btn btn-sm btn-warning">Editar</a>
           <form action="{{ url_for('rental_module_api.franchise_overpriced_delete', overpriced_id=fo.id) }}"
                 method="POST" style="display:inline;"
-                onsubmit="return confirm('¿Seguro que deseas eliminar este sobreprecio?');">
+                onsubmit="return confirm('¿Seguro que deseas eliminar?');">
             <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
           </form>
         </td>
       </tr>
       {% else %}
       <tr>
-        <td colspan="5" class="text-center text-muted">No hay sobreprecios registrados.</td>
+        <td colspan="4" class="text-center text-muted">No hay sobreprecios registrados.</td>
       </tr>
       {% endfor %}
     </tbody>

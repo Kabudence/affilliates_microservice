@@ -16,3 +16,7 @@ class GoalQueryService:
     def get_by_owner_id_and_goal_type(self, owner_id: int, goal_type: GoalType | str) -> Optional[Goal]:
         gt = goal_type if isinstance(goal_type, GoalType) else GoalType(goal_type)
         return self.goal_repo.get_by_owner_id_and_goal_type(owner_id, gt)
+
+    def list_by_owner_id_and_goal_type(self, owner_id: int, goal_type: GoalType | str) -> List[Goal]:
+        gt = goal_type if isinstance(goal_type, GoalType) else GoalType(goal_type)
+        return self.goal_repo.list_by_owner_id_and_goal_type(owner_id, gt)

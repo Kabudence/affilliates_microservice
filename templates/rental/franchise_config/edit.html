@@ -4,9 +4,8 @@
 
 <form method="post" class="app-feature-box" style="max-width:520px;">
   <div class="mb-3">
-    <label>Franchise Owner ID</label>
-    <input type="number" name="franchise_owner_id" min="1" class="form-control"
-           required value="{{ config.franchise_owner_id }}">
+    <label>Franchise Owner (derivado)</label>
+    <input type="text" class="form-control" value="{{ owner_id }}" disabled>
   </div>
 
   <div class="form-check mb-3">

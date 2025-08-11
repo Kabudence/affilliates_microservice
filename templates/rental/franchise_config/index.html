@@ -2,6 +2,8 @@
 {% block content %}
 <h2 class="mb-4" style="color:#e50914; font-weight:900;">Configuración de Franquicia</h2>
 
+<p class="text-muted">Owner (derivado): {{ owner_id }}</p>
+
 <a href="{{ url_for('rental_module_api.franchise_config_create') }}"
    class="btn btn-app mb-3" style="max-width:240px;">Crear configuración</a>
 

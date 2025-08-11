@@ -92,3 +92,25 @@ class GoalRepository:
             )
         except GoalModel.DoesNotExist:
             return None
+
+    def list_by_owner_id_and_goal_type(self, owner_id: int, goal_type: GoalType) -> List[Goal]:
+        rows = (
+            GoalModel
+            .select()
+            .where(
+                (GoalModel.owner_id == owner_id) &
+                (GoalModel.goal_type == (goal_type.value if isinstance(goal_type, GoalType) else goal_type))
+            )
+            .order_by(GoalModel.month.asc(), GoalModel.number_of_clients.asc())
+        )
+        return [
+            Goal(
+                id=r.id,
+                number_of_clients=r.number_of_clients,
+                month=r.month,
+                percentage_to_bonus=r.percentage_to_bonus,
+                owner_id=r.owner_id,
+                goal_type=GoalType(r.goal_type),
+            )
+            for r in rows
+        ]
