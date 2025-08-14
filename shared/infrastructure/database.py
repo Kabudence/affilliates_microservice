@@ -5,7 +5,6 @@ Database connection + table-creation helpers.
 
 from peewee import MySQLDatabase, SQL                    # SQL para constraints
 
-
 from shared.infrastructure.db_config import DB_CONFIG
 
 # ------------- conexión -------------
@@ -42,6 +41,7 @@ def init_db() -> None:
     from users.infraestructure.models.user_model import UserModel
     from rental.infraestructure.model.user_goal_model import UserGoalModel
     from rental.infraestructure.model.plan_time_model import PlanTimeModel
+    from business.infraestructure.model.business_model import BusinessModel
 
     # Socio-económico
     from socioeconomic_distribution.infraestructure.model.inscription_level_model import InscriptionLevelModel
@@ -79,6 +79,7 @@ def init_db() -> None:
             # Transacciones
             SubscriptionModel,
             CommissionModel,
+            BusinessModel,
         ],
         safe=True,
     )
