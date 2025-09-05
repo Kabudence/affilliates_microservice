@@ -2,7 +2,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, Tuple, List
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from flask import current_app
 
 from rental.domain.entities.commissions import CommissionsTypes
 from rental.domain.entities.goal import GoalType
